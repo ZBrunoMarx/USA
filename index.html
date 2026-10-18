@@ -1,0 +1,1028 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#111c2b"><title>Skytile · prévia interativa</title><style>:root{--navy:#152131;--navy-deep:#111c2b;--sky:#57bfd6;--blue:#17677d;--text:#1e2937;--muted:#79828d;--line:#e5e9ec;--surface:#fff;--bg:#f5f6f8;--green:#218668;--radius:14px;--font:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:var(--font);color:var(--text);font-size:14px;line-height:1.5}button,input,select,textarea{font:inherit}button,a,input,select,textarea{-webkit-tap-highlight-color:transparent}button{cursor:pointer}button:disabled{opacity:.5;cursor:wait}a{color:inherit;text-decoration:none}button:focus-visible,a:focus-visible{outline:3px solid #62c1da;outline-offset:4px}input:focus,textarea:focus,select:focus{outline:2px solid #79ccdf;outline-offset:1px}.icon{flex-shrink:0;vertical-align:middle}h1,h2,h3,p{margin:0}h1{font-size:34px;font-weight:650;letter-spacing:-1.15px;line-height:1.25}h2{font-size:20px;font-weight:650;letter-spacing:-.45px}h3{font-size:17px;font-weight:650;letter-spacing:-.25px}[hidden]{display:none!important}
+.sidebar{position:fixed;left:0;top:0;bottom:0;width:238px;background:var(--navy-deep);color:#eef4f8;display:flex;flex-direction:column;padding:38px 24px;z-index:20}.brand{display:block;margin:0 0 64px 8px}.brand-word{font-size:31px;font-weight:950;font-style:italic;letter-spacing:-1.6px;display:block;white-space:nowrap}.brand-star{display:inline-block;color:var(--sky);font-size:27px;margin:0 1px;font-style:normal}.brand-sub{display:block;color:#7b95a6;font-size:9px;letter-spacing:3px;margin-top:7px}.workspace-label{font-size:9px;letter-spacing:1.6px;color:#8393a6;margin:0 12px 17px}.sidebar nav{display:flex;flex-direction:column;gap:7px}.nav-item{display:flex;gap:13px;align-items:center;padding:13px 14px;border-radius:8px;color:#99a9ba;font-size:13px;transition:background .18s}.nav-item:hover{background:#1d2b3d;color:#fff}.nav-item.selected{background:#253545;color:#d8f5fc}.nav-item.selected .icon{color:var(--sky)}.nav-dot{margin-left:auto;width:6px;height:6px;border-radius:50%;background:var(--sky)}.sidebar-bottom{margin-top:auto}.local-indicator{display:flex;align-items:center;gap:8px;color:#bdd0d7;font-size:11px}.local-indicator>span,.local-pill>span{width:6px;height:6px;background:#66baa8;border-radius:50%}.sidebar-bottom p{color:#7f92a4;font-size:12px;line-height:1.9;margin:20px 0 26px}.sidebar-version{font-size:9px;letter-spacing:1.8px;border-top:1px solid #293547;padding-top:20px;color:#647a8f}.workspace{margin-left:238px;min-height:100vh;display:flex;flex-direction:column}.topbar{height:80px;padding:0 42px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);background:#fff;gap:20px}.breadcrumbs{font-size:12px;color:#7f8995;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.breadcrumbs span{margin:0 12px;color:#b8c0c6}.profile-control{display:flex;align-items:center;gap:10px;flex-shrink:0}.demo-label{font-size:10px;color:var(--muted)}.avatar{display:inline-flex;width:36px;height:36px;border-radius:50%;background:#e3f0f2;color:#296a79;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}.profile-control select{border:0;background:transparent;color:#344152;font-size:12px;max-width:190px}.profile-control .avatar{width:30px;height:30px;font-size:10px}main{padding:42px 42px 36px;max-width:1540px;width:100%;margin:auto;flex:1}.page-heading{display:flex;justify-content:space-between;align-items:center;gap:26px;margin-bottom:26px}.eyebrow{font-size:10px;font-weight:700;letter-spacing:1.6px;color:#7a8997;margin-bottom:10px}.page-heading p{color:var(--muted);margin-top:11px;font-size:13px}.button{display:inline-flex;align-items:center;justify-content:center;gap:9px;border:1px solid transparent;border-radius:8px;padding:11px 16px;font-size:12px;font-weight:600;white-space:nowrap;min-height:42px;transition:background .15s,transform .15s}.button:hover{transform:translateY(-1px)}.primary{background:var(--navy);color:#fff;box-shadow:0 2px 4px #14233412}.primary:hover{background:#284458}.primary .icon{color:#86d0e1}.secondary{background:#fff;border-color:#dce3e7;color:#405162}.secondary:hover{background:#edf5f7}.ghost{background:transparent;color:#30788b;padding-left:4px;padding-right:4px}.icon-button{border:0;background:transparent;color:#73818e;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;padding:9px}.icon-button:hover{background:#eef4f5}.demo-banner{display:flex;gap:10px;align-items:center;color:#728591;background:#edf3f6;border:1px solid #e1e9ee;border-radius:8px;padding:11px 15px;font-size:11px;margin-bottom:24px}.demo-banner .icon{width:16px;height:16px}.demo-banner strong{font-weight:700;font-size:10px;letter-spacing:.5px}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:32px}.stat{background:#fff;border:1px solid var(--line);border-radius:12px;padding:19px 23px}.stat-top{color:#6d7987;font-size:12px;display:flex;justify-content:space-between;align-items:center}.stat-top .icon{color:#8a9eaa;width:18px}.stat-value{display:flex;align-items:baseline;gap:15px;margin-top:8px;font-size:32px;font-weight:650;letter-spacing:-1px}.stat-value span{font-size:10px;color:#99a1aa;font-weight:400;letter-spacing:0}.list-toolbar{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:22px}.tabs{display:flex;gap:23px;border-bottom:1px solid #dce2e7;align-self:stretch}.tab{border:0;background:transparent;color:#8a94a0;font-size:12px;font-weight:500;padding:10px 0 15px;display:flex;gap:9px;align-items:center;border-bottom:2px solid transparent;margin-bottom:-1px}.tab.active{color:#263f50;border-bottom-color:#2d7d92}.tab span{background:#e4edf1;border-radius:4px;padding:0 5px;font-size:10px}.tab .icon{width:16px}.search{display:flex;align-items:center;gap:9px;background:#fff;border:1px solid #e0e5e9;padding:9px 13px;border-radius:8px;color:#929fa9}.search .icon{width:16px;height:16px}.search input{border:0;width:200px;background:transparent;font-size:11px;color:#4e5c69;padding:1px}.search input:focus{outline:0}.jobs-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}.job-card{border-radius:var(--radius);overflow:hidden;background:#fff;border:1px solid #e2e7eb;transition:box-shadow .2s,transform .2s;display:block}.job-card:hover{box-shadow:0 10px 22px #2536440d;transform:translateY(-3px)}.job-cover{height:168px;background:#e0e9ed;position:relative;overflow:hidden}.job-cover img{width:100%;height:100%;object-fit:cover}.tile-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;transform:rotate(-20deg) skew(4deg);width:110%;height:250px;position:absolute;left:-3%;top:-42px;padding:15px;background:#cad9df}.tile-grid span{background:linear-gradient(125deg,#f6f9fa,#ccdce4);border:1px solid #fff6;box-shadow:1px 3px 7px #596e7918}.tile-grid span:nth-child(2){background:linear-gradient(135deg,#c5d8e1,#9cbac8)}.tile-grid span:nth-child(4){background:linear-gradient(135deg,#c2d6df,#a4c0cd)}.tile-warm{background:#dfd9cf}.tile-warm span{background:linear-gradient(130deg,#f3efe7,#dbd2c4)}.tile-warm span:nth-child(2),.tile-warm span:nth-child(4){background:linear-gradient(130deg,#d5ccbf,#b8a992)}.cover-caption{position:absolute;bottom:16px;left:19px;font-size:9px;font-weight:700;letter-spacing:2px;color:#496676;text-shadow:0 1px 1px #fff8}.badge{display:inline-flex;gap:6px;align-items:center;border-radius:6px;font-size:10px;font-weight:600;padding:6px 10px;white-space:nowrap}.badge i{width:5px;height:5px;border-radius:50%;background:currentColor}.status-active{background:#edf8f3;color:#278269}.status-planned{background:#fff7e8;color:#947232}.status-delivered{background:#eef1f5;color:#737d8b}.job-cover .badge{position:absolute;left:16px;top:15px;box-shadow:0 1px 3px #00000008}.demo-chip{position:absolute;right:14px;top:16px;background:#ffffffa8;color:#74838c;border-radius:4px;font-size:8px;font-weight:700;letter-spacing:1px;padding:4px 6px}.job-card-content{padding:21px}.card-title{display:flex;justify-content:space-between;gap:10px;align-items:center}.card-title h3{font-size:16px}.card-title>.icon{width:16px;color:#9ba9b3}.address{display:flex;align-items:center;gap:6px;color:#8b95a0;font-size:11px;margin-top:7px}.address .icon{width:13px;height:13px}.card-meta{display:flex;gap:18px;margin:22px 0 19px;font-size:10px;color:#71808e}.card-meta>span{display:flex;align-items:center;gap:6px}.card-meta .icon{width:14px;height:14px}.card-bottom{display:flex;gap:8px;align-items:center;border-top:1px solid #eef0f2;padding-top:14px;font-size:10px;color:#87929d}.small-avatar{display:flex;width:25px;height:25px;border-radius:50%;background:#edf2f4;align-items:center;justify-content:center;font-size:9px;color:#728b98;flex-shrink:0}.small-avatar .icon{width:13px;height:13px}.last-update{font-size:9px;color:#a0a9b1;margin-top:11px}.workflow-note{display:flex;align-items:center;gap:17px;padding:24px 0;border-top:1px solid var(--line);margin-top:35px}.note-icon{display:flex;align-items:center;justify-content:center;width:39px;height:39px;border-radius:10px;background:#e8eff3;color:#658796;flex-shrink:0}.workflow-note strong{font-size:12px;font-weight:600}.workflow-note p{font-size:11px;color:#8b95a0;margin-top:4px}.workflow-note>a{display:flex;gap:8px;align-items:center;margin-left:auto;color:#458094;font-size:11px;white-space:nowrap}.workflow-note>a .icon{width:15px}.footer{border-top:1px solid var(--line);padding:20px 42px;color:#a0a8b1;font-size:10px;display:flex;justify-content:space-between;gap:20px}.mobile-nav{display:none}.back-link{font-size:11px;display:inline-flex;align-items:center;gap:8px;color:#68808e;margin-bottom:21px}.back-link .icon{width:16px}.detail-heading h1{font-size:32px}.heading-actions{display:flex;align-items:center;gap:15px}.detail-heading .address{font-size:12px}.inline-demo{font-size:8px;background:#e8edf0;color:#7d8b95;border-radius:4px;padding:3px 5px;letter-spacing:1px;margin-left:5px}.job-summary{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);border-radius:12px;background:#fff;margin-bottom:30px}.scope-summary,.daily-team{padding:22px 24px}.scope-summary{border-right:1px solid var(--line)}.job-summary .eyebrow{font-size:9px}.job-summary p{font-size:12px;color:#74818c;line-height:1.7}.daily-team{display:flex;justify-content:space-between;gap:12px;align-items:center}.person-chip{display:inline-block;background:#edf4f5;border:1px solid #e4edf0;padding:3px 8px;border-radius:5px;font-size:10px;margin:0 4px 4px 0;color:#427786}.section{margin:28px 0}.section-heading{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:18px}.section-heading p{font-size:12px;color:#929ca6;margin-top:5px}.count{font-size:11px;color:#98a4ae}.rooms-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.room-card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:20px;transition:border-color .2s}.room-card:hover{border-color:#6bb8ca}.room-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}.room-card-top>.icon{width:16px;color:#a1acb5}.room-icon{width:33px;height:33px;border-radius:8px;background:#eef4f7;color:#548799;display:flex;align-items:center;justify-content:center}.room-icon .icon{width:17px}.room-card h3{font-size:15px;margin-bottom:13px}.service-tags{display:flex;gap:5px;flex-wrap:wrap}.service-tags span{font-size:9px;color:#778897;background:#f5f7f8;border-radius:4px;padding:3px 6px}.room-bottom{margin-top:21px;display:flex;gap:5px;justify-content:space-between;align-items:center}.room-bottom>span:last-child{font-size:9px;color:#a0aab2}.progress-badge{display:inline-flex;align-items:center;font-size:9px;border-radius:5px;background:#f1f3f5;color:#82909b;padding:5px 8px;font-weight:500}.progress-started,.progress-ongoing{color:#42809a;background:#edf5fa}.progress-review{color:#a37b36;background:#fbf4e7}.progress-done{color:#2e8970;background:#eaf6ef}.progress-almost{color:#428d86;background:#ebf6f4}.room-last-service{font-size:9px;color:#97a2ac;margin-top:9px}.plan-placeholder{display:flex;align-items:center;gap:15px;border:1px dashed #d5dee3;border-radius:10px;padding:22px;margin:25px 0;color:#7a909f}.plan-placeholder>div{flex:1}.plan-placeholder strong{font-size:12px;color:#526b7d}.plan-placeholder p{font-size:11px;margin-top:5px;max-width:590px}.plan-canvas{position:relative;width:fit-content;max-width:100%;margin:auto;border:1px solid var(--line);border-radius:10px;overflow:hidden;line-height:0;background:#fff}.plan-canvas>img{display:block;max-width:100%;max-height:560px;width:auto}.plan-region{position:absolute;background:#49b89730;border:2px solid #45a789;display:flex;justify-content:center;align-items:center;line-height:1.5;overflow:hidden;min-width:8px}.plan-region:hover{background:#49b89766}.plan-region span{font-size:10px;background:#fffE;padding:4px 7px;border-radius:4px;color:#23664d}.admin-actions{display:flex;align-items:center;gap:12px;padding:20px 0;border-top:1px solid var(--line)}.admin-actions>span{margin-right:auto;font-size:11px;color:#939ea8}.timeline-section{margin-top:38px}.timeline{position:relative}.entry-card{background:#fff;border:1px solid var(--line);border-radius:12px;margin:18px 0;padding:23px}.entry-header{display:flex;align-items:center;gap:10px}.entry-header>div{flex:1}.entry-header strong{font-size:12px;display:block}.entry-header>div>span{display:block;font-size:10px;color:#929ca6;margin-top:2px}.avatar.small{width:30px;height:30px;font-size:10px}.entry-location{display:flex;align-items:center;gap:7px;color:#698393;font-size:11px;margin:19px 0 10px}.entry-location .icon{width:14px}.entry-location span{margin:0 3px;color:#b4bfc6}.entry-note{font-size:13px;color:#566573;white-space:pre-wrap;line-height:1.8}.entry-foot{margin-top:18px;padding-top:13px;border-top:1px solid #f0f2f4;color:#a0a9b1;font-size:9px;display:flex;align-items:center;gap:6px}.entry-foot .icon{width:12px;height:12px}.timeline-event{display:flex;align-items:center;gap:10px;padding:12px 7px;color:#8e9aa5;font-size:10px}.timeline-event p{flex:1}.timeline-event strong{font-weight:600}.timeline-event time{font-size:9px;white-space:nowrap}.event-dot{width:6px;height:6px;border-radius:50%;background:#afc3ce;flex-shrink:0}.service-status-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:15px;margin-bottom:20px}.service-status{background:#fff;border:1px solid var(--line);border-radius:10px;padding:22px}.service-status .eyebrow{font-size:8px}.service-status h3{font-size:15px;margin:7px 0 15px}.service-status p{font-size:10px;color:#98a2ac;margin-top:14px}.info-strip{display:flex;gap:10px;align-items:center;border-radius:8px;color:#6d8493;background:#edf3f6;padding:13px 16px;font-size:11px;line-height:1.7}.info-strip .icon{width:17px;height:17px}.notice{display:flex;gap:15px;align-items:center;border:1px solid #dbe8ed;border-radius:10px;padding:17px 20px;background:#eff6f8;margin-bottom:25px;color:#557c8b}.notice>div{flex:1}.notice strong{font-size:12px}.notice p{font-size:11px;margin-top:4px;color:#7b929e}.notice.success{background:#eef8f2;border-color:#d8eee2;color:#488570}.photo-gallery{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}.photo-item{width:150px;height:112px;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:#f0f4f6;display:flex;align-items:center;justify-content:center}.photo-item img{width:100%;height:100%;object-fit:cover}.photo-item>span{font-size:11px;color:#6b7e8e;padding:12px}.file-link{display:flex;align-items:center;gap:10px;padding:20px;background:#fff;border:1px solid var(--line);border-radius:9px;color:#61859a;font-size:12px}.file-link>.icon:last-child{margin-left:auto}.date-pill,.local-pill{display:flex;gap:8px;align-items:center;border:1px solid #dde5e9;background:#fff;border-radius:7px;padding:10px 14px;font-size:11px;color:#718491;white-space:nowrap}.date-pill .icon{width:16px;color:#bb9a56}.team-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}.team-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:24px}.team-card h3{margin-top:15px}.assigned-people{padding:20px 0;min-height:108px}.assigned-person{display:flex;align-items:center;gap:10px;margin:9px 0}.assigned-person strong{display:block;font-size:12px}.assigned-person>div>span{display:block;color:#95a0aa;font-size:10px}.full{width:100%}.unassigned{padding:13px 0;font-size:12px;color:#a1aab3}.people-list{background:#fff;border:1px solid var(--line);border-radius:12px;padding:0 24px}.person-row{display:flex;align-items:center;gap:14px;padding:17px 0;border-bottom:1px solid #eff1f3}.person-row:last-child{border:0}.person-row>div{flex:1}.person-row strong{font-size:12px;display:block}.person-row>div>span{font-size:11px;color:#98a3ad;display:block;margin-top:2px}.role-chip{font-size:9px;color:#718798;background:#edf2f5;border-radius:5px;padding:5px 8px}.chat-layout{display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:24px}.chat-main{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}.chat-thread{min-height:340px;max-height:520px;overflow-y:auto;padding:27px;scroll-behavior:smooth}.chat-welcome{text-align:center;padding:30px 10px 10px}.assistant-orb{display:inline-flex;align-items:center;justify-content:center;width:58px;height:58px;background:radial-gradient(circle at top left,#e9f7fa,#b5dce7);border:1px solid #bfdfE8;border-radius:16px;color:#3b99b4;font-size:35px;margin-bottom:24px;box-shadow:0 5px 25px #54bad81a}.chat-welcome h2{font-size:22px}.chat-welcome p{font-size:12px;color:#9aa4ad;margin-top:12px;line-height:1.8}.prompt-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:28px}.prompt-grid button{background:#f8fafb;border:1px solid #e5ecf0;border-radius:8px;font-size:11px;color:#5c7c8b;text-align:left;padding:13px;display:flex;justify-content:space-between;gap:10px;align-items:center}.prompt-grid button:hover{background:#edf5f8}.prompt-grid .icon{width:14px}.chat-guide{padding:22px 6px}.chat-guide .eyebrow{font-size:8px}.chat-guide h3{font-size:15px}.chat-guide ul{list-style:none;padding:0;margin:24px 0}.chat-guide li{display:flex;gap:9px;font-size:11px;color:#8595a2;margin:13px 0}.chat-guide li .icon{width:14px;height:14px;color:#72a69d}.guide-divider{border-top:1px solid #e2e7eb;margin:25px 0}.chat-guide p{color:#93a0ab;font-size:11px;line-height:1.9}.chat-composer{border-top:1px solid #e9eef1;padding:17px 23px;background:#fbfcfd}.chat-scope{display:flex;align-items:center;gap:10px;font-size:10px;color:#8798a5;margin-bottom:10px}.chat-scope select{max-width:280px;background:#f0f5f7;border:0;border-radius:4px;color:#638293;font-size:10px;padding:5px 7px}.composer-row{display:flex;align-items:center;gap:9px;border:1px solid #dde6eb;border-radius:9px;background:#fff;padding:8px}.composer-row textarea{border:0;resize:vertical;flex:1;padding:7px;font-size:12px;min-width:0;max-height:150px;color:#526779}.composer-row textarea:focus{outline:none}.send-button{padding:9px;min-height:36px}.send-button .icon{width:18px;height:18px}.composer-note{display:block;font-size:9px;color:#a5aeb7;margin-top:10px}.chat-question{background:#edf4f7;border-radius:11px 11px 0 11px;padding:15px 18px;margin:0 0 20px 45px;font-size:12px}.message-author{font-size:9px;color:#89a0ac;display:block;margin-bottom:7px}.chat-question p,.chat-answer p{white-space:pre-wrap;line-height:1.9}.chat-answer{display:flex;align-items:flex-start;gap:13px;margin-bottom:30px;font-size:12px;color:#526674}.assistant-mini{width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:#e8f4f7;color:#459eb8;border-radius:8px;font-size:20px;flex-shrink:0}.chat-answer>div{min-width:0}.source-links{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}.source-links a{display:inline-flex;align-items:center;gap:5px;border:1px solid #dbe8ee;background:#f6fafb;border-radius:5px;padding:5px 7px;font-size:9px;color:#658b9f}.source-links .icon{width:12px;height:12px}.empty{grid-column:1/-1;padding:60px 25px;text-align:center;background:#fff;border:1px dashed #dce4ea;border-radius:12px;color:#9aabb7}.empty>.icon{width:28px;height:28px;margin-bottom:15px;color:#9bb9c8}.empty h3{color:#637d8e;font-size:16px;margin-bottom:8px}.empty p{font-size:12px}.empty.compact{padding:35px}.boot{padding:80px;text-align:center;color:#55748a}.boot p{margin:20px}
+.modal-open{overflow:hidden}.modal-backdrop{position:fixed;inset:0;z-index:100;background:#0d182a80;backdrop-filter:blur(3px);display:flex;align-items:center;justify-content:center;padding:24px}.modal{background:#fff;border-radius:16px;box-shadow:0 30px 80px #0b172838;width:600px;max-width:100%;max-height:90vh;overflow:auto}.modal.wide{width:790px}.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding:25px 28px 22px;border-bottom:1px solid #eef1f3}.modal-head h2{font-size:21px}.modal-head p{font-size:11px;color:#95a1aa;line-height:1.7;margin-top:7px;max-width:530px}.form-body{padding:24px 28px;display:flex;flex-direction:column;gap:20px}.form-body label{display:flex;flex-direction:column;gap:8px;color:#5b6d7c;font-size:11px;font-weight:600}.form-body input:not([type=checkbox]):not([type=radio]):not([type=file]),.form-body textarea,.form-body select{display:block;width:100%;border:1px solid #dfe6eb;background:#fff;border-radius:7px;padding:11px 12px;color:#41576a;font-size:12px;font-weight:400;min-height:42px}.form-body textarea{resize:vertical}.form-body input::placeholder,.form-body textarea::placeholder{color:#abb5bd;font-size:11px}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:18px}.optional{font-size:9px;color:#a9b2ba;font-weight:400}.form-body fieldset{border:0;padding:0;margin:0}.form-body legend,.field-title{font-size:11px;font-weight:600;color:#5b6d7c;margin-bottom:10px}.choice-row{display:flex;gap:12px}.choice-row label{display:flex;flex-direction:row;gap:9px;align-items:center;border:1px solid #e0e8ed;border-radius:7px;padding:12px 15px;font-size:11px;flex:1;cursor:pointer}.choice-row label:has(input:checked){background:#eef7fa;border-color:#97c9d6;color:#448297}input[type=checkbox],input[type=radio]{accent-color:#37889e;width:15px;height:15px;flex-shrink:0;margin:0}.room-field{padding:17px;background:#f8fafb;border:1px solid #e7ecef;border-radius:8px;margin-bottom:12px}.room-field:last-child{margin-bottom:0}.room-field-head{display:flex;align-items:center;gap:12px;margin-bottom:15px}.room-field-head label{flex:1}.room-field-head>.icon-button{align-self:flex-end}.checkbox-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}.checkbox-grid label{flex-direction:row;align-items:center;gap:7px;font-weight:400;font-size:10px}.upload-label{border:1px dashed #cedde6;border-radius:8px;padding:17px;background:#fafcfd;position:relative;font-size:11px!important}.upload-label>.icon{color:#7b9bab;width:20px;height:20px}.upload-label input[type=file]{font-size:10px;width:100%;font-weight:400;color:#8496a3}.upload-label input[type=file]::file-selector-button{border:1px solid #d7e3e9;border-radius:5px;padding:7px 8px;background:#fff;color:#5e8599;font:inherit;margin-right:8px}.field-hint{font-size:10px!important;color:#9cabb6!important;line-height:1.8;font-weight:400}.selected-file{font-size:9px;color:#6b93a4;padding-top:6px;font-weight:400;overflow-wrap:anywhere}.modal-foot{display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #eef1f3;padding:18px 28px;position:sticky;bottom:0;background:#fff}.form-error{color:#ab5147;font-size:11px;padding:0 28px 16px}.mini-job-title{padding:13px 16px;border-radius:7px;background:#f1f6f8;color:#5a7e92;font-size:12px;font-weight:600}.person-choice{display:flex!important;flex-direction:row!important;align-items:center;gap:12px!important;padding:12px 0;border-bottom:1px solid #edf1f3;cursor:pointer}.person-choice strong{font-size:12px;display:block;font-weight:500}.person-choice small{display:block;font-size:10px;color:#96a6b1;margin-top:2px;font-weight:400}.audio-recorder{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;padding:16px;border:1px solid #e5edf1;border-radius:8px}.audio-recorder strong{font-size:11px;color:#698495;font-weight:600}.audio-recorder p{font-size:9px;color:#9caab4;margin-top:5px}.audio-recorder .button{font-size:10px;min-height:35px;padding:7px 11px}.audio-recorder .icon{width:15px}#audio-preview:not(:empty){width:100%;display:flex;align-items:center;gap:8px}audio{max-width:100%;height:35px;margin-top:10px}.audio-note{font-size:9px;color:#98a8b4;margin-top:7px}.recording{color:#af5a52!important;border-color:#d99f98!important;background:#fff6f4!important}.record-dot{width:7px;height:7px;background:#b35a51;border-radius:50%;animation:pulse 1s infinite}@keyframes pulse{50%{opacity:.3}}.map-editor{position:relative;touch-action:none;user-select:none;width:fit-content;max-width:100%;margin:auto;line-height:0;cursor:crosshair}.map-editor img{display:block;max-width:100%;max-height:440px}#map-selection{position:absolute;border:2px solid #3fa989;background:#4ab89a40;pointer-events:none}#toast{position:fixed;bottom:25px;left:50%;transform:translate(-50%,20px);background:#203a49;color:#fff;font-size:12px;border-radius:9px;padding:14px 22px;box-shadow:0 10px 30px #111c2b22;z-index:200;opacity:0;pointer-events:none;transition:.2s;max-width:90vw}#toast.show{opacity:1;transform:translate(-50%,0)}#toast.error{background:#914d47}
+@media(min-width:1450px){main{padding-top:50px}.job-cover{height:205px}.tile-grid{height:300px}}
+@media(max-width:1200px){.sidebar{width:205px;padding:32px 17px}.workspace{margin-left:205px}.topbar{padding:0 28px}main{padding:32px 28px}.jobs-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.stat-value{gap:9px}.stat-value span{font-size:9px}.stat{padding:16px}.chat-layout{grid-template-columns:minmax(0,1fr) 185px}.rooms-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.demo-label{display:none}.page-heading h1{font-size:29px}.workflow-note>a{font-size:10px}.footer{padding:20px 28px}}
+@media(max-width:900px){.sidebar{width:175px;padding:28px 13px}.workspace{margin-left:175px}.brand{margin-left:4px}.brand-word{font-size:26px}.brand-star{font-size:22px}.brand-sub{font-size:7px;letter-spacing:2.5px}.workspace-label{font-size:8px;letter-spacing:1px;margin-left:8px}.nav-item{font-size:12px;padding:12px 10px;gap:10px}.page-heading{align-items:flex-start}.page-heading h1{font-size:26px}.stat-value{display:block}.stat-value span{display:block;font-size:9px}.topbar{padding:0 23px;height:68px}main{padding:28px 23px}.jobs-grid{gap:15px}.job-card-content{padding:17px}.list-toolbar{gap:12px}.tabs{gap:15px}.search input{width:150px}.workflow-note{flex-wrap:wrap}.workflow-note>a{margin-left:56px}.job-summary{grid-template-columns:1fr}.scope-summary{border-right:0;border-bottom:1px solid var(--line)}.chat-layout{grid-template-columns:1fr}.chat-guide{display:none}.heading-actions{flex-direction:column;gap:8px;align-items:flex-end}.section-heading h2{font-size:18px}.plan-placeholder{flex-wrap:wrap}.plan-placeholder .button{margin-left:35px}.entry-header{flex-wrap:wrap}.entry-header>.progress-badge{margin-left:40px}.team-grid{grid-template-columns:1fr}}
+@media(max-width:650px){.sidebar{display:none}.workspace{margin-left:0}.topbar{height:65px;padding:0 19px}.breadcrumbs{font-size:10px;max-width:40%}.breadcrumbs span{margin:0 6px}.profile-control{gap:5px}.profile-control select{font-size:10px;max-width:150px}.profile-control .avatar{width:26px;height:26px;font-size:9px}main{padding:28px 18px 85px}.page-heading{gap:15px;flex-wrap:wrap;margin-bottom:20px}.page-heading h1{font-size:27px;letter-spacing:-.85px}.page-heading p{font-size:12px;margin-top:9px;max-width:340px;line-height:1.8}.page-heading>.button{width:100%;justify-content:center}.eyebrow{font-size:9px;letter-spacing:1.4px}.demo-banner{font-size:10px;align-items:flex-start;padding:12px}.stats{gap:8px;margin-bottom:23px}.stat{padding:13px 10px;border-radius:9px}.stat-top{font-size:9px;line-height:1.5;min-height:28px}.stat-top .icon{display:none}.stat-value{font-size:27px;margin-top:7px}.stat-value span{font-size:8px;line-height:1.7;margin-top:3px;min-height:27px}.list-toolbar{flex-wrap:wrap;margin-bottom:18px;gap:15px}.tabs{width:100%;gap:25px}.tab{font-size:11px;padding-bottom:12px}.search{width:100%;padding:10px 12px}.search input{width:100%;font-size:12px}.jobs-grid{grid-template-columns:1fr;gap:18px}.job-cover{height:174px}.tile-grid{height:280px}.job-card-content{padding:20px}.card-title h3{font-size:17px}.card-meta{font-size:11px;margin-top:18px}.card-bottom{font-size:11px}.last-update{font-size:10px}.workflow-note{padding-top:22px;gap:12px;align-items:flex-start}.workflow-note>div{flex:1}.workflow-note p{font-size:11px;line-height:1.8}.workflow-note>a{margin-left:51px;font-size:11px}.footer{display:none}.mobile-nav{display:flex;position:fixed;bottom:0;left:0;right:0;background:#fffF;border-top:1px solid #e1e8ed;z-index:40;padding:7px 12px calc(7px + env(safe-area-inset-bottom));box-shadow:0 -4px 18px #18263305;justify-content:space-around}.mobile-nav .nav-item{flex-direction:column;gap:4px;font-size:9px;padding:6px 15px;color:#95a4af;border-radius:7px;min-width:80px}.mobile-nav .nav-item.selected{background:#eef6f8;color:#43879b}.mobile-nav .nav-dot{display:none}.mobile-nav .icon{width:20px;height:20px}.back-link{margin-bottom:19px}.detail-heading h1{font-size:28px}.heading-actions{flex-direction:row;width:100%;justify-content:space-between;align-items:center}.heading-actions>.button{flex:1}.job-summary{margin-bottom:25px}.scope-summary,.daily-team{padding:18px}.daily-team{flex-wrap:wrap}.daily-team .button{font-size:11px}.rooms-grid{grid-template-columns:1fr}.room-card{padding:18px}.room-card-top{margin-bottom:13px}.room-bottom{margin-top:17px}.section{margin:25px 0}.section-heading{gap:10px}.section-heading h2{font-size:18px}.section-heading p{font-size:11px;line-height:1.7;max-width:260px}.section-heading .button{padding:9px;font-size:10px;min-height:36px}.section-heading .button .icon{width:14px}.plan-placeholder{padding:17px;gap:12px}.plan-placeholder p{line-height:1.8}.plan-placeholder .button{margin-left:32px}.entry-card{padding:17px;margin:15px 0}.entry-header strong{font-size:12px}.entry-header>div>span{font-size:9px}.entry-note{font-size:12px}.entry-location{font-size:10px;flex-wrap:wrap}.entry-foot{font-size:8px;line-height:1.7;align-items:flex-start}.timeline-event{flex-wrap:wrap;gap:7px}.timeline-event p{min-width:80%}.timeline-event time{margin-left:13px}.service-status-grid{grid-template-columns:1fr}.service-status{padding:18px}.service-status h3{display:inline-block;margin:5px 14px 10px 0}.service-status p{margin-top:7px}.info-strip{font-size:10px;align-items:flex-start;padding:12px;line-height:1.9}.notice{padding:15px;gap:10px;flex-wrap:wrap}.notice strong{font-size:11px}.notice p{font-size:10px;line-height:1.8}.notice>.button{margin-left:30px}.admin-actions{flex-wrap:wrap}.admin-actions>span{width:100%}.photo-item{width:calc(50% - 5px);height:125px}.chat-thread{padding:18px;min-height:320px;max-height:55vh}.chat-welcome{padding:20px 0 10px}.chat-welcome h2{font-size:20px}.prompt-grid{gap:7px}.prompt-grid button{font-size:10px;padding:11px;line-height:1.7}.chat-welcome p{font-size:11px}.chat-composer{padding:14px}.composer-note{font-size:8px;line-height:1.6}.chat-scope select{max-width:220px}.chat-question{margin-left:25px;padding:13px;font-size:11px}.chat-answer{gap:9px;font-size:11px}.chat-answer p{line-height:1.85}.source-links a{font-size:8px}.modal-backdrop{padding:12px;align-items:center}.modal{max-height:92dvh;border-radius:12px}.modal-head{padding:20px 19px 17px}.modal-head h2{font-size:19px}.modal-head p{font-size:10px}.form-body{padding:20px 19px;gap:18px}.form-row{grid-template-columns:1fr;gap:17px}.checkbox-grid{grid-template-columns:repeat(2,1fr);gap:12px}.room-field{padding:14px}.choice-row label{padding:12px;font-size:10px}.modal-foot{padding:15px 19px}.modal-foot .button{font-size:11px}.form-error{padding:0 19px 15px}.upload-label{padding:14px}.audio-recorder{padding:13px}.form-body .info-strip{font-size:9px}.person-row{gap:10px}.person-row>div>span{font-size:10px}.role-chip{font-size:8px;padding:5px}.people-list{padding:0 17px}.date-pill{font-size:10px}#toast{bottom:83px;width:max-content;max-width:90vw;font-size:11px}.empty{padding:40px 18px}.boot{padding:40px 20px}}
+.completion{width:100%;min-width:0}.completion-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#738997;font-size:12px;margin-bottom:10px}.completion-heading strong{color:#367f95;font-size:25px;letter-spacing:-.5px;font-weight:650;white-space:nowrap}.completion-track{height:7px;background:#eaf0f3;border-radius:5px;overflow:hidden}.completion-track>span{display:block;height:100%;background:linear-gradient(90deg,#55b8cf,#2b839b);border-radius:5px;transition:width .3s}.completion-caption{font-size:10px;color:#99a7b1;margin-top:8px;line-height:1.7}.completion.compact{margin:18px 0}.completion.compact .completion-heading{font-size:10px;margin-bottom:7px}.completion.compact .completion-heading strong{font-size:18px}.completion.compact .completion-track{height:5px}.completion.compact .completion-caption{font-size:9px}.completion.confirmed .completion-heading strong{color:#27866a}.completion.confirmed .completion-track>span{background:#42a886}.completion-panel{display:flex;align-items:center;gap:35px;padding:21px 24px;border:1px solid #dce7ed;border-radius:12px;background:#fff;margin:0 0 24px}.completion-panel .completion{flex:1}.completion-panel .button{font-size:11px}.progress-legend{background:#f5f9fa;border:1px solid #e3ecef;border-radius:8px;padding:5px 16px}.progress-legend>div{display:flex;justify-content:space-between;font-size:12px;padding:10px 0;border-bottom:1px solid #e5edef;color:#607d8d}.progress-legend>div:last-child{border:0}.progress-legend strong{color:#3d8297}@media(max-width:650px){.completion-panel{padding:17px;gap:13px;align-items:flex-start;flex-direction:column}.completion-panel .button{min-height:28px;padding:0;font-size:10px}.completion-heading strong{font-size:25px}.completion-caption{font-size:9px}}
+.person-id{display:inline-block;font-size:9px;letter-spacing:.5px;color:#8fa3b0;font-weight:400;margin-left:8px}.person-skills{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}.person-skills>span{font-size:9px;background:#f0f5f7;color:#6e8b9a;padding:2px 6px;border-radius:4px}.person-skills small{font-size:9px;color:#a6b3bc}.person-edit{font-size:10px;padding:5px 10px;min-height:32px}.skills-details{border:1px solid #e1eaf0;padding:15px;border-radius:8px}.skills-details summary{cursor:pointer;font-size:11px;color:#608295;font-weight:600}.skills-details summary .optional{margin-left:6px}.skills-details .field-hint{margin:12px 0}.all-skills-choice{display:flex!important;flex-direction:row!important;align-items:center;font-size:10px!important;gap:9px!important;margin:15px 0}.skills-details .checkbox-grid{margin-top:15px}@media(max-width:650px){.person-row{flex-wrap:wrap;align-items:flex-start;gap:10px}.person-row>div{min-width:150px}.person-row .role-chip{font-size:7px}.person-row .person-edit{margin-left:auto;min-height:28px;padding:4px 6px}.person-id{display:block;margin:4px 0}.person-skills>span{font-size:8px}.person-skills small{font-size:8px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+.chat-shortcuts{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}.chat-shortcuts button{padding:7px 9px;border:1px solid #dbe8ee;border-radius:6px;background:#f2f7f9;color:#526f81;font-size:10px;cursor:pointer}.chat-shortcuts button:hover{background:#e6f2f6}.cited-entry{outline:2px solid #54bad8;outline-offset:4px;scroll-margin-top:100px}.chat-scope select{min-width:0;max-width:min(280px,75vw)}
+
+.preview-status{position:relative;z-index:50;padding:12px 20px 12px 258px;background:#fff1d7;color:#785016;border-bottom:1px solid #ead3a7;font-size:12px;line-height:1.6}.preview-status[data-mode=interactive]{background:#e5f4ee;color:#216b52;border-color:#c4e3d6}.preview-status[data-mode=error]{background:#ffe8e5;color:#962c29;border-color:#f4c6c0}#preview-snapshot{pointer-events:none;user-select:none;opacity:.7}@media(max-width:650px){.preview-status{padding:12px 18px;font-size:11px}}
+.finance-panel{padding:24px;background:#fff;border:1px solid var(--line);border-radius:14px}.cost-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:18px 0}.cost-metric{padding:15px;background:#f7f9fb;border:1px solid #e9eef2;border-radius:9px}.cost-metric>span,.cost-metric>small{display:block;font-size:11px;color:#718391}.cost-metric>strong{display:block;font-size:23px;margin:8px 0;color:#23394a}.cost-metric>small{font-size:10px;line-height:1.7}.cost-status{display:flex;gap:9px;align-items:center;padding:12px;border-radius:8px;font-size:12px;background:#eef4f7;color:#526f81}.cost-exceeded,.cost-risk{color:#a7432c;background:#fff0e9}.cost-review{color:#866321;background:#fff8e7}.cost-within{color:#28735e}.cost-footnote{display:flex;flex-wrap:wrap;gap:14px;font-size:11px;color:#5f7381;margin-bottom:16px}.finance-actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap}.schedule-strip{padding:14px;border:1px solid #e5ecf0;border-radius:8px;margin-bottom:12px}.schedule-strip p,.schedule-strip small{font-size:11px;color:#7c8b97}.schedule-strip small{display:block;margin-top:7px}.cost-warning{font-size:12px;padding:12px;background:#fff8e7;color:#866321;border-radius:7px;margin:12px 0}.finance-details{border-top:1px solid #e6edf1;margin-top:17px;padding-top:14px}.finance-details>summary{cursor:pointer;font-size:12px;font-weight:600;color:#527284}.expense-row{display:flex;justify-content:space-between;gap:18px;padding:15px 0;border-bottom:1px solid #eef2f5;font-size:12px}.expense-row>div:first-child{min-width:0}.expense-row p{font-size:11px;color:#7c8c98;margin:5px 0;overflow-wrap:anywhere}.expense-side{display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0}.expense-side .button{min-height:30px;padding:4px 7px;font-size:10px}.expense-row .file-link{font-size:11px;margin-top:6px}.expense-row pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:10px;background:#f5f8fa;padding:10px;border-radius:6px;max-height:220px;overflow:auto}.expense-pending{background:#fff3d9;color:#93702b}.expense-rejected,.expense-voided{background:#fff0e9;color:#a7432c}.finance-card-mini{margin:12px 0;padding:10px;border-top:1px solid #edf0f3;background:#f8fafb;border-radius:6px}.finance-card-mini span{display:flex;justify-content:space-between;gap:5px;font-size:11px;color:#617787}.finance-card-mini small{display:block;font-size:9px;margin-top:6px;padding:3px}.labor-person{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;align-items:center;padding:14px 0;border-bottom:1px solid #e6edf1}.labor-person label{font-size:11px}.labor-check{display:flex!important;flex-direction:row!important;align-items:center}.labor-check input{width:auto!important}.finance-panel .section-heading{margin-bottom:12px}@media(max-width:650px){.finance-panel{padding:16px}.cost-metrics{grid-template-columns:1fr 1fr;gap:8px}.cost-metric{padding:12px 10px}.cost-metric>strong{font-size:18px}.cost-metric>span{font-size:10px}.labor-person{grid-template-columns:1fr 1fr}.labor-check{grid-column:1/-1}.expense-row{gap:8px}.expense-side{max-width:115px}.cost-status{font-size:11px}.finance-panel .section-heading{flex-wrap:wrap}.finance-details>summary{font-size:11px}}
+
+.camera-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}.camera-actions span{font-size:11px;color:#7b8b98;flex:1;min-width:150px}.photo-selection{display:flex;align-items:center;gap:10px;margin-top:10px}.photo-selection img{width:64px;height:64px;object-fit:cover;border-radius:7px}.photo-selection>span{min-width:0;flex:1;overflow-wrap:anywhere;font-size:11px}.photo-selection .button{font-size:10px;padding:7px}.entry-reference{padding:14px;background:#f4f8fa;border:1px solid #e2eaf0;border-radius:8px;font-size:12px}.entry-reference p{font-size:11px;color:#768b98;margin:5px 0}.analysis-choice{padding:14px;border:1px solid #d6e7ee;background:#eff7fa;border-radius:8px;font-size:12px}.analysis-choice label{display:flex;flex-direction:row;align-items:center;gap:8px}.analysis-choice input{width:auto}.analysis-choice p{margin-top:7px;font-size:11px;color:#6e8390;line-height:1.8}.analysis-card{margin:16px 0;padding:16px;border:1px solid #dbe8ee;background:#f7fafc;border-radius:9px;font-size:12px}.analysis-card>p{margin:9px 0;line-height:1.8;white-space:pre-wrap}.analysis-heading{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.analysis-heading>span{font-size:10px;color:#718696}.analysis-comparison{display:flex;flex-wrap:wrap;gap:15px;padding:10px 0}.analysis-list{margin-top:12px}.analysis-list ul{margin:6px 0;padding-left:20px;line-height:1.8}.analysis-note{font-size:10px;color:#718696}.analysis-review{padding:10px;background:#e8f2f6;border-radius:6px;margin:12px 0}.verdict-possible_difference{border-color:#ead8b9;background:#fff9ee}.analysis-card details>summary{cursor:pointer;margin:10px 0;color:#4e7b91}.analysis-card details p{font-size:11px;color:#718696;margin:10px 0}.verdict-compatible{border-color:#cee4db}.verdict-insufficient_evidence{border-color:#dce3eb}@media(max-width:650px){.form-body input:not([type=checkbox]):not([type=radio]),.form-body select,.form-body textarea,.chat-composer textarea{font-size:16px;min-height:44px}.camera-actions .button{min-height:48px;width:100%}.analysis-card{padding:12px;font-size:11px}.analysis-heading{align-items:flex-start}.photo-selection .button{min-height:44px}.analysis-choice label{align-items:flex-start}.analysis-comparison{display:grid;gap:7px}.analysis-card .photo-item{width:calc(50% - 5px)}}
+.login-shell { min-height:100dvh; display:grid; place-items:center; padding:24px; background:var(--bg, #f5f7fa); }
+.login-card { width:min(100%, 440px); padding:32px; border:1px solid #e3e8ed; border-radius:20px; background:white; box-shadow:0 12px 40px #13243b0a; }
+.login-card .brand-word { display:block; margin-bottom:30px; color:#15283d; font-size:32px; font-style:italic; font-weight:900; }
+.login-card h1 { font-size:26px; line-height:1.25; }
+.login-card p { line-height:1.6; color:#66778b; }
+.login-card form { display:grid; gap:18px; margin:24px 0; }
+.login-card label { display:grid; gap:8px; font-size:14px; font-weight:600; }
+.login-card input { width:100%; font-size:16px; min-height:48px; border:1px solid #dce3e7; border-radius:8px; padding:12px; color:#1e2937; background:white; }
+.person-access { min-height:44px; }
+@media(max-width:600px) { .login-card { padding:24px; } .person-row .person-access { grid-column:2 / -1; justify-self:start; } }
+</style></head><body><div id="preview-status" class="preview-status" data-mode="visual" role="status"><strong>Modo visual · v0.3.1</strong> — os comandos ainda não foram ativados. Se esta mensagem continuar, abra o HTML no Safari fora da prévia do chat.</div><div id="app"><div id="preview-snapshot" inert aria-hidden="true"><main class="boot"><h1>Skytile · obras e equipe</h1><p>Cada obra, um passo à frente.</p><p>Ativando obras, ambientes, equipe e custos. Se a faixa continuar em modo visual, abra o HTML no navegador fora da prévia.</p></main></div></div><div id="modal-root"></div><div id="toast" role="status" aria-live="polite"></div><noscript><div class="notice">Este visualizador bloqueia JavaScript. Baixe o arquivo Skytile.html e abra no navegador para usar os controles.</div></noscript><script>window.SKYTILE_PREVIEW_SEED={"users":[{"id":"thiago","name":"Thiago","role":"admin","specialty":"Gestão","code":"SK-001","position":"management","skills":[],"active":true},{"id":"flavio","name":"Flavio","role":"admin","specialty":"Instalador","code":"SK-003","position":"installer","skills":[],"active":true},{"id":"johnny","name":"Jonny","role":"worker","specialty":"Instalador","code":"SK-002","position":"installer","skills":[],"active":true},{"id":"diego","name":"Diego","role":"worker","specialty":"Instalação de cerâmica","active":false,"code":"SK-007","position":"installer","skills":[]},{"id":"ajudante","name":"Ajudante · demonstração","role":"worker","specialty":"Preparação e apoio","active":false,"code":"SK-008","position":"installer","skills":[]},{"id":"marlo","code":"SK-004","name":"Marlo","role":"worker","position":"installer","skills":[],"active":true,"specialty":"Instalador"},{"id":"willian","code":"SK-005","name":"Willian","role":"worker","position":"installer","skills":[],"active":true,"specialty":"Instalador"},{"id":"bruno","code":"SK-006","name":"Bruno","role":"worker","position":"helper","skills":[],"active":true,"specialty":"Helper · ajudante"}],"jobs":[{"id":"demo-manhattan","name":"Apartamento · Manhattan","address":"Manhattan, NY · endereço de demonstração","description":"Preparação da sala e instalação de cerâmica nos banheiros.","status":"active","createdAt":"2026-10-11T14:03:09.652Z","deliveredAt":null,"plan":null,"cover":null,"demo":true,"rooms":[{"id":"sala","name":"Sala principal","services":["Self-level","Tile no piso"],"region":null},{"id":"banheiro-1","name":"Banheiro 01","services":["Tile na parede","Tile no piso","Rejunte"],"region":null},{"id":"banheiro-2","name":"Banheiro 02","services":["Tile na parede","Rejunte"],"region":null}],"assignments":[],"events":[{"id":"c76869f2-e189-47ce-a7d1-900e80ebf228","type":"created","at":"2026-10-11T14:03:09.653Z","author":"Thiago","note":"Obra de exemplo criada para explorar a plataforma."}],"entries":[{"id":"demo-entry-1","roomId":"sala","service":"Self-level","phase":"end","date":"2026-10-11","at":"2026-10-11T14:03:09.686Z","authorId":"marlo","author":"Marlo","note":"Aplicação inicial registrada. Aguardar avaliação da base antes de liberar a próxima etapa.","progress":"review","photos":[],"audio":null,"demo":true},{"id":"demo-entry-2","roomId":"banheiro-1","service":"Tile na parede","phase":"end","date":"2026-10-11","at":"2026-10-11T14:03:09.686Z","authorId":"johnny","author":"Jonny","note":"Preparação iniciada. Instalação da cerâmica ainda não começou.","progress":"started","photos":[],"audio":null,"demo":true}],"finance":{"settings":{"contractCents":1000000,"budgetCents":700000,"remainingCents":340000,"deadline":"2026-10-18","expectedFinish":"2026-10-18","estimatedCommitmentCents":420000},"expenses":[{"id":"demo-expense-materials","date":"2026-10-18","at":"2026-10-18T12:00:00Z","category":"materials","note":"Compra fictícia para demonstrar o controle de custos.","amountCents":420000,"status":"approved","authorId":"thiago","author":"Thiago","receipt":null,"demo":true}],"labor":[],"history":[]},"initialPhotos":[]},{"id":"demo-newark","name":"Banheiro residencial","address":"Newark, NJ · endereço de demonstração","description":"Renovação de um banheiro. Escopo inicial combinado com o cliente.","status":"planned","createdAt":"2026-10-11T14:03:09.686Z","deliveredAt":null,"plan":null,"cover":null,"demo":true,"rooms":[{"id":"banheiro","name":"Banheiro","services":["Tile no piso","Tile na parede","Rejunte"],"region":null}],"assignments":[],"entries":[],"events":[{"id":"bf43b96b-5904-4a43-8306-611f94ae318f","type":"created","at":"2026-10-11T14:03:09.686Z","author":"Thiago","note":"Aguardando início."}],"finance":{"settings":{"contractCents":null,"budgetCents":null,"remainingCents":null,"deadline":null,"expectedFinish":null,"estimatedCommitmentCents":null},"expenses":[],"labor":[],"history":[]},"initialPhotos":[]},{"id":"demo-hoboken","name":"Cozinha · Hoboken","address":"Hoboken, NJ · endereço de demonstração","description":"Instalação de cerâmica e rejunte.","status":"delivered","createdAt":"2026-10-11T14:03:09.686Z","deliveredAt":"2026-10-11T14:03:09.686Z","plan":null,"cover":null,"demo":true,"rooms":[{"id":"cozinha","name":"Cozinha","services":["Tile no piso","Rejunte"],"region":null}],"assignments":[],"entries":[],"events":[{"id":"a4148865-1625-4231-80a0-8132c9a2173f","type":"delivered","at":"2026-10-11T14:03:09.686Z","author":"Thiago","note":"Entrega de demonstração. Histórico preservado."}],"finance":{"settings":{"contractCents":null,"budgetCents":null,"remainingCents":null,"deadline":null,"expectedFinish":null,"estimatedCommitmentCents":null},"expenses":[],"labor":[],"history":[]},"initialPhotos":[]}],"chat":[],"teamVersion":1,"finance":{"rates":{}},"today":"2026-10-18","ai":{"available":false,"mode":"standalone","provider":"OpenAI"},"auth":{"enabled":false,"userId":null}};window.addEventListener('error',function(event){var status=document.getElementById('preview-status');if(status.dataset.mode==='visual'){status.dataset.mode='error';status.textContent='Não foi possível ativar esta prévia: '+event.message+'. Abra o arquivo HTML no navegador.';}});</script><script>(function () {
+  const stages = Object.freeze({ not_started: 0, started: 20, ongoing: 50, almost: 80, done: 100 });
+  const completionScope = job => job.rooms.flatMap(room => room.services.map(service => ({ roomId: room.id, service })));
+  function serviceProgress(job, roomId, service) {
+    const entries = job.entries.filter(e => e.roomId === roomId && e.service === service);
+    const latest = entries.at(-1);
+    const delivery = [...(job.events || [])].reverse().find(e => e.type === 'delivered' && e.scope?.some(s => s.roomId === roomId && s.service === service));
+    const applicable = delivery ? entries.filter(e => e.at > delivery.at) : entries;
+    const estimate = [...applicable].reverse().find(e => Object.hasOwn(stages, e.progress));
+    return { percent: estimate ? stages[estimate.progress] : delivery ? 100 : 0, known: !!estimate || !!delivery, review: latest?.progress === 'review', source: estimate || null, delivery: delivery || null };
+  }
+  function jobProgress(job, roomId = null) {
+    const services = job.rooms.filter(r => !roomId || r.id === roomId).flatMap(r => r.services.map(s => serviceProgress(job, r.id, s)));
+    const mean = services.length ? services.reduce((n, s) => n + s.percent, 0) / services.length : 0;
+    let percent = Math.round(mean / 5) * 5;
+    if (mean > 0 && percent === 0) percent = 5;
+    if (mean < 100 && percent === 100) percent = 95;
+    if (job.status === 'delivered') percent = 100;
+    return { percent, total: services.length, known: services.filter(s => s.known).length, unestimated: services.filter(s => !s.known).length, review: services.filter(s => s.review).length, confirmed: job.status === 'delivered', services };
+  }
+  globalThis.SkytileProgress = Object.freeze({ stages, serviceProgress, jobProgress, completionScope });
+})();
+</script><script>(function () {
+  const positions = Object.freeze({ installer: 'Instalador', grout: 'Grout specialist · rejunte', helper: 'Helper · ajudante', management: 'Gestão' });
+  const skills = Object.freeze(['Self-level', 'Tile no piso', 'Tile na parede', 'Rejunte', 'Preparação da base', 'Demolição']);
+  const roster = [
+    { id: 'thiago', code: 'SK-001', name: 'Thiago', role: 'admin', position: 'management' },
+    { id: 'johnny', code: 'SK-002', name: 'Jonny', role: 'worker', position: 'installer' },
+    { id: 'flavio', code: 'SK-003', name: 'Flavio', role: 'admin', position: 'installer' },
+    { id: 'marlo', code: 'SK-004', name: 'Marlo', role: 'worker', position: 'installer' },
+    { id: 'willian', code: 'SK-005', name: 'Willian', role: 'worker', position: 'installer' },
+    { id: 'bruno', code: 'SK-006', name: 'Bruno', role: 'worker', position: 'helper' },
+  ];
+  const defaultUsers = () => roster.map(u => ({ ...u, skills: [], active: true, specialty: positions[u.position] }));
+  function nextCode(users) {
+    const max = Math.max(0, ...users.map(u => /^SK-\d+$/.test(u.code || '') ? Number(u.code.slice(3)) : 0));
+    return 'SK-' + String(max + 1).padStart(3, '0');
+  }
+  function migrateTeam(state) {
+    if (state.teamVersion === 1) return false;
+    for (const base of defaultUsers()) {
+      const existing = state.users.find(u => u.id === base.id);
+      if (existing) Object.assign(existing, base); else state.users.push(base);
+    }
+    for (const u of state.users) {
+      if (['diego', 'ajudante'].includes(u.id)) u.active = false;
+      if (!u.code) u.code = nextCode(state.users);
+      if (!u.position) u.position = 'installer';
+      if (!u.skills) u.skills = [];
+      if (u.active === undefined) u.active = true;
+    }
+    // Only fictional starter entries are renamed; real history and assignment IDs stay intact.
+    for (const j of state.jobs) for (const e of j.entries) {
+      if (e.demo && e.authorId === 'diego') { e.authorId = 'marlo'; e.author = 'Marlo'; }
+      if (e.demo && e.authorId === 'johnny') e.author = 'Jonny';
+    }
+    state.teamVersion = 1; return true;
+  }
+  function validateProfile(body, previous = null) {
+    const fail = message => { const e = new Error(message); e.status = 400; throw e; };
+    if (typeof body.name !== 'string' || !body.name.trim() || body.name.length > 120) fail('Informe um nome de até 120 caracteres.');
+    if (!Object.hasOwn(positions, body.position)) fail('Selecione uma função profissional válida.');
+    const selected = body.skills === undefined ? previous?.skills || [] : body.skills;
+    if (!Array.isArray(selected) || selected.some(s => !skills.includes(s))) fail('Selecione habilidades válidas.');
+    return { name: body.name.trim(), position: body.position, specialty: positions[body.position], skills: [...new Set(selected)] };
+  }
+  function validateAssignment(users, userIds, previous = null) {
+    if (!Array.isArray(userIds) || userIds.some(id => { const u = users.find(u => u.id === id); return !u || (u.active === false && !previous?.userIds.includes(id)); })) {
+      const e = new Error('Selecione profissionais ativos. Perfis antigos só podem ser mantidos na escala já registrada.'); e.status = 400; throw e;
+    }
+    return [...new Set(userIds)];
+  }
+  globalThis.SkytileTeam = Object.freeze({ positions, skills, defaultUsers, nextCode, migrateTeam, validateProfile, validateAssignment });
+})();
+</script><script>// Shared rules for the server and standalone prototype. USD values are integer cents.
+(function () {
+  const categories = Object.freeze({ materials: 'Materiais', travel: 'Deslocamento / pedágio', parking: 'Estacionamento', other: 'Outros' });
+  const fail = (message, status = 400) => { const e = new Error(message); e.status = status; throw e; };
+  const money = cents => cents === null || cents === undefined ? 'Não informado' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'USD' }).format(cents / 100);
+  function cents(value, optional = true) {
+    if (optional && (value === null || value === undefined || value === '')) return null;
+    if (!Number.isSafeInteger(value) || value < 0 || value > 100000000000) fail('Informe um valor válido em centavos de dólar.');
+    return value;
+  }
+  function parseMoney(value) {
+    const s = String(value ?? '').trim(); if (!s) return null;
+    if (!/^\d+(?:[.,]\d{1,2})?$/.test(s)) fail('Use um valor como 250,00 ou 250.00, sem separador de milhares.');
+    const [whole, decimals = ''] = s.replace(',', '.').split('.');
+    return cents(Number(whole) * 100 + Number(decimals.padEnd(2, '0')), false);
+  }
+  function validDate(value, optional = false) {
+    if (optional && !value) return null;
+    if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value) || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString().slice(0, 10) !== value) fail('Informe uma data válida.');
+    return value;
+  }
+  const emptySettings = () => ({ contractCents: null, budgetCents: null, remainingCents: null, deadline: null, expectedFinish: null, estimatedCommitmentCents: null });
+  function migrate(state) {
+    let changed = false;
+    if (!state.finance) { state.finance = { rates: {} }; changed = true; }
+    for (const j of state.jobs) if (!j.finance) { j.finance = { settings: emptySettings(), expenses: [], labor: [], history: [] }; changed = true; }
+    return changed;
+  }
+  function totals(job) {
+    const f = job.finance || { expenses: [], labor: [] };
+    const approved = f.expenses.filter(e => e.status === 'approved').reduce((n, e) => n + e.amountCents, 0);
+    const labor = f.labor.reduce((n, d) => n + d.people.reduce((s, p) => s + p.amountCents, 0), 0);
+    const pending = f.expenses.filter(e => e.status === 'pending').reduce((n, e) => n + e.amountCents, 0);
+    return { approved, labor, confirmed: approved + labor, pending, pendingCount: f.expenses.filter(e => e.status === 'pending').length };
+  }
+  function summary(job, today) {
+    const t = totals(job), settings = job.finance?.settings || emptySettings();
+    const commitment = t.confirmed + t.pending;
+    const projected = settings.remainingCents === null ? null : commitment + settings.remainingCents;
+    const stale = projected !== null && settings.estimatedCommitmentCents !== commitment;
+    const budgetStatus = settings.budgetCents === null ? 'unknown' : t.confirmed > settings.budgetCents ? 'exceeded' : projected !== null && !stale && projected > settings.budgetCents ? 'risk' : stale ? 'review' : 'within';
+    const deliveredDate = job.deliveredAt ? new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date(job.deliveredAt)) : null;
+    const due = settings.deadline, finish = deliveredDate || settings.expectedFinish;
+    const schedule = !due ? 'unknown' : deliveredDate ? deliveredDate > due ? 'delivered_late' : 'delivered_on_time' : today > due ? 'late' : !finish ? 'unestimated' : finish > due ? 'risk' : finish < due ? 'ahead' : 'on_time';
+    // A planned team is not proof of attendance. Show unconfirmed past/today scales.
+    const referenceDays = new Set([...(job.assignments || []).filter(a => a.date <= today && a.userIds.length).map(a => a.date), ...(job.entries || []).filter(e => e.date <= today).map(e => e.date)]);
+    const unconfirmedDays = [...referenceDays].filter(date => !job.finance?.labor.some(d => d.date === date)).length;
+    return { ...t, projected, stale, budgetStatus, schedule, unconfirmedDays, ...settings,
+      projectedResult: projected !== null && settings.contractCents !== null ? settings.contractCents - projected : null };
+  }
+  function jobView(job, user) {
+    if (user.role === 'admin') return job;
+    const { finance, ...publicJob } = job;
+    return { ...publicJob, myExpenses: (finance?.expenses || []).filter(e => e.authorId === user.id).map(({ reviewedBy, ...e }) => e) };
+  }
+  function stateView(state, user, today) {
+    if (user.role === 'admin') return { ...state, today };
+    const { finance, chat, ...publicState } = state;
+    return { ...publicState, today, chat: [], jobs: state.jobs.map(j => jobView(j, user)) };
+  }
+  function setRate(state, userId, value) { migrate(state); state.finance.rates[userId] = cents(value); }
+  function handle(state, path, body, user, context) {
+    const match = path.match(/^\/jobs\/([^/]+)\/(finance|labor|expenses)(?:\/([^/]+)\/review)?$/);
+    if (!match) return null;
+    const job = state.jobs.find(j => j.id === match[1]); if (!job) fail('Obra não encontrada.', 404);
+    const f = job.finance; const admin = () => { if (user.role !== 'admin') fail('Somente administradores podem gerenciar os custos.', 403); };
+    const log = (action, before, after) => f.history.push({ id: context.id(), at: context.now(), author: user.name, action, before: structuredClone(before), after: structuredClone(after) });
+    if (match[2] === 'finance') {
+      admin(); if (match[3]) fail('Operação inválida.');
+      const settings = { contractCents: cents(body.contractCents), budgetCents: cents(body.budgetCents), remainingCents: cents(body.remainingCents), deadline: validDate(body.deadline, true), expectedFinish: validDate(body.expectedFinish, true), estimatedCommitmentCents: totals(job).confirmed + totals(job).pending, updatedAt: context.now(), updatedBy: user.name };
+      log('Referências de custo e prazo atualizadas', f.settings, settings); f.settings = settings;
+    } else if (match[2] === 'expenses' && !match[3]) {
+      if (job.status === 'delivered' && user.role !== 'admin') fail('Peça a um administrador para lançar um gasto da obra entregue.');
+      const amountCents = cents(body.amountCents, false); if (!amountCents) fail('O gasto precisa ser maior que zero.');
+      if (!Object.hasOwn(categories, body.category)) fail('Selecione uma categoria de gasto.');
+      const date = validDate(body.date); if (date > context.today) fail('Registre gastos ocorridos até hoje.');
+      const note = String(body.note || '').trim(); if (note.length > 1000) fail('Descrição muito longa.');
+      const expense = { id: context.id(), at: context.now(), date, amountCents, category: body.category, note, receipt: context.receipt(body.receipt), authorId: user.id, author: user.name, status: user.role === 'admin' ? 'approved' : 'pending' };
+      if (user.role === 'admin') { expense.reviewedBy = user.name; expense.reviewedAt = context.now(); }
+      f.expenses.push(expense); log('Gasto registrado', null, expense);
+    } else if (match[2] === 'expenses') {
+      admin(); const expense = f.expenses.find(e => e.id === match[3]); if (!expense) fail('Gasto não encontrado.', 404);
+      if (!['approved', 'rejected', 'voided'].includes(body.status)) fail('Decisão inválida.');
+      if (body.status === expense.status) return jobView(job, user);
+      if (!((expense.status === 'pending' && ['approved', 'rejected'].includes(body.status)) || (expense.status === 'approved' && body.status === 'voided'))) fail('Esta decisão não pode ser alterada. Lance uma correção separada.');
+      const reason = String(body.reason || '').trim(); if (reason.length > 1000 || (body.status !== 'approved' && !reason)) fail('Informe o motivo da decisão.');
+      const before = structuredClone(expense); Object.assign(expense, { status: body.status, reason, reviewedAt: context.now(), reviewedBy: user.name }); log('Gasto conferido', before, expense);
+    } else if (match[2] === 'labor') {
+      admin(); if (match[3]) fail('Operação inválida.');
+      const date = validDate(body.date); if (date > context.today) fail('Confirme somente dias que já aconteceram.');
+      if (!Array.isArray(body.people) || body.people.length > 100 || new Set(body.people.map(p => p.userId)).size !== body.people.length) fail('Selecione cada profissional apenas uma vez.');
+      const prior = f.labor.find(d => d.date === date);
+      const people = body.people.map(p => {
+        const person = state.users.find(u => u.id === p.userId); if (!person || (person.active === false && !prior?.people.some(v => v.userId === p.userId))) fail('Profissional inválido.');
+        if (![.5, 1].includes(p.fraction)) fail('Escolha meia diária ou uma diária.');
+        const used = state.jobs.filter(j => j.id !== job.id).flatMap(j => j.finance.labor.filter(d => d.date === date).flatMap(d => d.people.filter(v => v.userId === p.userId))).reduce((n, p) => n + p.fraction, 0);
+        if (used + p.fraction > 1) fail(`${person.name} já tem diária confirmada em outra obra neste dia. Ajuste a divisão entre as obras.`);
+        const rateCents = cents(p.rateCents, false);
+        return { userId: person.id, name: person.name, fraction: p.fraction, rateCents, amountCents: Math.round(rateCents * p.fraction) };
+      });
+      const record = { id: prior?.id || context.id(), date, people, confirmedAt: context.now(), confirmedBy: user.name };
+      log('Diárias confirmadas', prior || null, record); f.labor = f.labor.filter(d => d.date !== date); f.labor.push(record);
+    }
+    return jobView(job, user);
+  }
+  function demo(state, today) {
+    // Replace, never copy, actual financial data into a shareable standalone HTML.
+    state.finance = { rates: {} };
+    for (const j of state.jobs) j.finance = { settings: emptySettings(), expenses: [], labor: [], history: [] };
+    const job = state.jobs.find(j => j.id === 'demo-manhattan');
+    if (job) {
+      job.finance.settings = { ...emptySettings(), contractCents: 1000000, budgetCents: 700000, remainingCents: 340000, estimatedCommitmentCents: 420000, deadline: today, expectedFinish: today };
+      job.finance.expenses = [{ id: 'demo-expense-materials', date: today, at: today + 'T12:00:00Z', category: 'materials', note: 'Compra fictícia para demonstrar o controle de custos.', amountCents: 420000, status: 'approved', authorId: 'thiago', author: 'Thiago', receipt: null, demo: true }];
+    }
+  }
+  globalThis.SkytileFinance = Object.freeze({ categories, money, cents, parseMoney, validDate, migrate, totals, summary, jobView, stateView, setRate, handle, demo });
+})();
+</script><script>// Local queries only: no language model or media interpretation.
+(function () {
+const { jobProgress } = globalThis.SkytileProgress;
+const normalize = value => String(value).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+const fail = (message, status = 400) => { const error = new Error(message); error.status = status; throw error; };
+const progressNames = { not_started: 'Não iniciado', started: 'Iniciado', ongoing: 'Em andamento', almost: 'Quase concluído', review: 'Aguardando avaliação', done: 'Conclusão relatada' };
+function respond(state, question, jobId, today) {
+  const q = normalize(question);
+  if (!jobId) {
+    const named = state.jobs.filter(j => q.includes(normalize(j.name)));
+    if (named.length === 1) jobId = named[0].id;
+  }
+  const all = jobId ? state.jobs.filter(j => j.id === jobId) : state.jobs;
+  if (jobId && !all.length) fail('Obra não encontrada.', 404);
+  const active = all.filter(j => j.status !== 'delivered');
+  const scope = jobId ? all : active;
+  const links = [];
+  const link = (j, entry = null) => { links.push({ jobId: j.id, jobName: j.name, roomId: entry?.roomId || null, entryId: entry?.id || null, label: entry ? `${j.name} · ${entry.author} · ${entry.date}` : j.name }); };
+  let answer;
+  if (/estoque|ferrament/.test(q)) {
+    answer = 'Este protótipo ainda não registra estoque ou ferramentas. Para custos, posso consultar gastos, diárias confirmadas, orçamento e valor contratado.';
+  } else if (/custo|gast|despesa|orcam|receita|valor.*(contrat|obra)|resultado|lucro|financeir/.test(q)) {
+    const F = globalThis.SkytileFinance;
+    answer = 'Custos registrados por obra (USD):\n\n' + scope.map(j => {
+      link(j); const s = F.summary(j, today);
+      return `${j.name}\nValor contratado: ${F.money(s.contractCents)} (não indica recebimento).\nOrçamento de custos: ${F.money(s.budgetCents)}.\nGasto confirmado: ${F.money(s.confirmed)}; diárias confirmadas: ${F.money(s.labor)}.\nGastos aguardando conferência: ${F.money(s.pending)} (${s.pendingCount}).\nEstimativa adicional: ${F.money(s.remainingCents)}.\nCusto final previsto: ${F.money(s.projected)}${s.stale ? ' — revise a estimativa após os novos gastos' : ''}.\nResultado estimado antes de despesas gerais: ${F.money(s.projectedResult)}.\n${s.budgetStatus === 'exceeded' ? 'O gasto confirmado já excedeu o orçamento.' : s.budgetStatus === 'risk' ? 'A previsão final excede o orçamento.' : s.budgetStatus === 'unknown' ? 'Orçamento ainda não informado.' : s.stale ? 'Previsão precisa de revisão.' : 'Gasto confirmado dentro do orçamento.'}${s.unconfirmedDays ? ` ${s.unconfirmedDays} dia(s) de escala até hoje sem diárias confirmadas.` : ''}`;
+    }).join('\n\n') + '\n\nGastos registrados podem estar incompletos. A previsão inclui os gastos enviados para conferência e o restante estimado pelo administrador. Recebimentos e despesas gerais não são controlados nesta versão.';
+  } else if (/prazo|adiant|previsao.*(termin|entreg)|atraso|atrasad/.test(q)) {
+    const labels = { unknown: 'prazo não informado', unestimated: 'previsão de término não informada', late: 'data combinada ultrapassada', risk: 'risco de atraso', ahead: 'previsão de entrega antecipada', on_time: 'previsão dentro do prazo', delivered_late: 'entregue após a data combinada', delivered_on_time: 'entregue dentro do prazo' };
+    answer = 'Prazos das obras:\n\n' + scope.map(j => { link(j); const s = globalThis.SkytileFinance.summary(j,today); return `${j.name}: ${labels[s.schedule]}. Entrega combinada: ${s.deadline || 'não informada'}; previsão de término: ${s.expectedFinish || 'não informada'}.`; }).join('\n') + '\n\nA previsão é informada pelo administrador. O percentual de avanço não calcula automaticamente a data de término.';
+  } else if (/material/.test(q)) {
+    answer = 'Os gastos com materiais podem ser registrados por obra. Estoque e quantidades disponíveis ainda não são controlados. Experimente “Como estão os custos das obras?”.';
+  } else if ((/cadastr/.test(q) && /profission|equipe|colabor|pessoa|guys/.test(q)) || /funcao|habilidad|especial|helper|ajudant|instalador|grout/.test(q) || (/profission/.test(q) && !/hoje|ontem|amanha|\d{4}-\d{2}-\d{2}|escal/.test(q))) {
+    const people = state.users.filter(u => u.active !== false);
+    const named = people.filter(u => new RegExp('(?:^|[^a-z0-9])' + normalize(u.name).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(?:$|[^a-z0-9])').test(q));
+    const subset = named.length ? named : /helper|ajudant/.test(q) ? people.filter(u => u.position === 'helper') : /grout|especial.*rejunte/.test(q) ? people.filter(u => u.position === 'grout') : /instalador/.test(q) ? people.filter(u => u.position === 'installer') : people;
+    answer = subset.length ? 'Profissionais cadastrados:\n\n' + subset.map(u => `${u.name} (${u.code}) — ${globalThis.SkytileTeam.positions[u.position] || u.specialty}. ${u.skills?.length ? 'Etapas informadas: ' + u.skills.join(', ') + '.' : 'Etapas ainda não informadas.'}`).join('\n') : 'Nenhum profissional cadastrado para essa função.';
+    links.push({ kind: 'team', label: 'Cadastro da equipe' });
+  } else if (/percent|porcent|conclusao/.test(q)) {
+    answer = 'Avanço das obras:\n\n' + scope.map(j => {
+      const p = jobProgress(j); link(j);
+      return `${j.name}: ${p.percent}% — ${p.confirmed ? 'entrega confirmada' : `estimativa; ${p.known} de ${p.total} serviços com estimativa${p.review ? '; avaliação pendente' : ''}`}.`;
+    }).join('\n') + '\n\nMédia dos serviços com o mesmo peso, arredondada a 5 pontos. Serviços sem estimativa contribuem com 0%. Não considera metragem ou duração.';
+  } else if (/equipe|quem|profission|trabalh|escal/.test(q) && !/avanc|progres/.test(q)) {
+    let targetDate = today;
+    const requestedDate = q.match(/\b\d{4}-\d{2}-\d{2}\b/)?.[0];
+    if (requestedDate) targetDate = requestedDate;
+    else if (/ontem|amanha/.test(q)) { const d = new Date(today + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + (q.includes('ontem') ? -1 : 1)); targetDate = d.toISOString().slice(0, 10); }
+    answer = `Equipe registrada para ${targetDate}:\n\n` + scope.map(j => {
+      const a = j.assignments.find(a => a.date === targetDate); link(j);
+      return `${j.name}: ${a?.userIds.length ? a.userIds.map(id => state.users.find(u => u.id === id)?.name).join(', ') : 'nenhuma equipe anotada para esta data'}.`;
+    }).join('\n') + '\n\nA escala é diária e não restringe o acesso às obras. Relatos enviados não comprovam a presença durante toda a diária.';
+  } else if (/pend|bloque|atras|avali|falta|aguard/.test(q)) {
+    const found = [];
+    for (const j of scope) for (const room of j.rooms) {
+      for (const service of room.services) {
+        const e = [...j.entries].reverse().find(e => e.roomId === room.id && e.service === service);
+        if (e && (e.progress === 'review' || /aguard|falt|impedi|bloque|pend|atras/i.test(e.note) || (e.analysis?.status==='complete'&&e.analysis.verdict!=='compatible'&&(!e.analysis.review||e.analysis.review.decision==='needs_check')))) { found.push(`${j.name} / ${room.name} / ${service}: ${e.note || progressNames[e.progress]}${e.analysis?.status==='complete'?' · Observação visual da IA: '+e.analysis.summary:''}`); link(j, e); }
+      }
+    }
+    answer = found.length ? 'Pendências identificadas nos últimos relatos de cada serviço:\n\n' + found.join('\n\n') : 'Não encontrei pendências explícitas nos últimos relatos dos serviços deste recorte. Isso não confirma que todos os serviços estão liberados.';
+  } else if (/finaliz|entreg|encerr/.test(q) && !jobId) {
+    const delivered = all.filter(j => j.status === 'delivered'); delivered.forEach(j => link(j));
+    answer = delivered.length ? 'Obras entregues:\n\n' + delivered.map(j => `${j.name} — histórico preservado; pode ser reaberta para ajuste.`).join('\n') : 'Não há obras entregues registradas.';
+  } else if (/obra|abert/.test(q) && !/resum|avanc|progres|hoje|relat|situac/.test(q) && !jobId) {
+    active.forEach(j => link(j)); answer = `${active.length} obra(s) aberta(s):\n\n` + active.map(j => `${j.name} — ${j.status === 'planned' ? 'Planejada' : 'Em andamento'}; ${j.rooms.length} ambiente(s).`).join('\n');
+  } else if (/resum|avanc|progres|hoje|relat|situac|acontec|status/.test(q)) {
+    answer = 'Resumo dos registros disponíveis:\n\n' + scope.map(j => {
+      const latest = j.rooms.flatMap(room => room.services.map(service => {
+        const e = [...j.entries].reverse().find(e => e.roomId === room.id && e.service === service && (!q.includes('hoje') || e.date === today));
+        if (!e) return `${room.name} / ${service}: sem registro${q.includes('hoje') ? ' hoje' : ' de avanço'}.`;
+        link(j, e); return `${room.name} / ${e.service}: ${progressNames[e.progress]}. ${e.note || 'Registro sem relato escrito.'} (${e.author}, ${e.date})`;
+      })); if (!links.some(s => s.jobId === j.id)) link(j);
+      const p = jobProgress(j); return `${j.name} — ${p.percent}% (${p.confirmed ? 'entrega confirmada' : 'avanço estimado'})\n${latest.join('\n')}`;
+    }).join('\n\n') + '\n\nResumo local dos relatos. Análises visuais, quando disponíveis nos registros, são estimativas para revisão humana e não validam tecnicamente o serviço.';
+  } else {
+    answer = 'No modo local, consigo consultar: obras abertas ou entregues, resumo de avanço, pendências e equipe de hoje. Também consulto custos e prazos. Experimente “Quais são as pendências?” ou selecione uma obra e peça um resumo. Interpretação livre por IA e transcrição de áudio ainda não estão conectadas.';
+  }
+  if (!scope.length && !links.length && !/material|ferrament|estoque|custo|gast|despesa/.test(q)) answer = 'Não há obras abertas neste recorte. Você pode consultar as obras entregues ou cadastrar uma nova obra.';
+  return { answer, sources: links, mode: 'local' };
+}
+globalThis.SkytileAssistant = { respond };
+})();
+</script><script>// Browser-only adapter used by Skytile.html. The server-backed application does not load this file.
+(function () {
+  const initial = window.SKYTILE_PREVIEW_SEED;
+  let state = structuredClone(initial), database = null;
+  const local = { persistent: false, request };
+  window.SkytileLocal = local;
+  const ready = new Promise(resolve => {
+    // Restricted viewers may leave IndexedDB pending instead of raising an error.
+    // A late connection must never replace records created after the memory fallback.
+    let settled = false;
+    const timeout = setTimeout(() => finish(), 5000);
+    const finish = (connection = null, saved = null) => {
+      if (settled) { connection?.close(); return; }
+      settled = true; clearTimeout(timeout);
+      if (connection) {
+        database = connection;
+        if (saved) state = saved;
+        local.persistent = true;
+        connection.onversionchange = () => { connection.close(); database = null; local.persistent = false; };
+      }
+      resolve();
+    };
+    try {
+      const open = indexedDB.open('skytile-preview-v1', 1);
+      open.onupgradeneeded = () => { if (!open.result.objectStoreNames.contains('data')) open.result.createObjectStore('data'); };
+      open.onerror = open.onblocked = () => finish();
+      open.onsuccess = () => {
+        const connection = open.result;
+        if (settled) { connection.close(); return; }
+        try {
+          const tx = connection.transaction('data');
+          const read = tx.objectStore('data').get('state');
+          tx.onabort = tx.onerror = () => { connection.close(); finish(); };
+          read.onsuccess = () => finish(connection, read.result);
+          read.onerror = () => { connection.close(); finish(); };
+        } catch { connection.close(); finish(); }
+      };
+    } catch { finish(); }
+  });
+  let queue = Promise.resolve();
+  const now = () => new Date().toISOString();
+  const day = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
+  const id = () => typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const fail = message => { throw new Error(message); };
+  const required = (value, label) => typeof value === 'string' && value.trim() ? value.trim() : fail(`Preencha ${label}.`);
+  const progressLabels = { not_started: 'Não iniciado', started: 'Iniciado', ongoing: 'Em andamento', almost: 'Quase concluído', review: 'Aguardando avaliação', done: 'Conclusão relatada' };
+  async function persist() {
+    if (!database) return;
+    await new Promise((resolve, reject) => {
+      const tx = database.transaction('data', 'readwrite'); tx.objectStore('data').put(state, 'state');
+      tx.oncomplete = resolve; tx.onerror = () => reject(new Error('Não foi possível salvar no navegador. O espaço pode estar cheio.')); tx.onabort = tx.onerror;
+    });
+  }
+  async function request(path, options = {}, profile) {
+    const operation = async () => {
+      await ready;
+      const previous = structuredClone(state);
+      try {
+        const teamChanged = globalThis.SkytileTeam.migrateTeam(state);
+        if (globalThis.SkytileFinance.migrate(state) || teamChanged) await persist();
+        const result = await handle(path, options, profile);
+        if (options.method && options.method !== 'GET') await persist();
+        return structuredClone(result);
+      } catch (e) { state = previous; throw e; }
+    };
+    const result = queue.then(operation); queue = result.catch(() => {}); return result;
+  }
+  async function handle(path, options, profile) {
+    const user = state.users.find(u => u.id === profile);
+    if (!user) fail('Perfil inválido.');
+    const admin = () => { if (user.role !== 'admin') fail('Esta ação está disponível para Thiago e Flavio.'); };
+    const body = options.body || {};
+    if (path === '/state') return { ...globalThis.SkytileFinance.stateView(state, user, day()), ai:{available:false,mode:'standalone',provider:'OpenAI'} };
+    if (user.active === false) fail('Este perfil foi arquivado. Selecione um profissional ativo.');
+    if (/\/(analyze|analysis-review)$/.test(path)) fail('A análise real precisa da versão com servidor e chave de IA. Esta prévia permite tirar e salvar fotos, mas não chama uma IA.');
+    if (options.method === 'POST') {
+      const result = globalThis.SkytileFinance.handle(state, path, body, user, { today: day(), now, id, receipt: p => {
+        if (!p) return null;
+        if (!/^data:image\/(jpeg|png|webp|gif|heic|heif);base64,/.test(p.url || '')) fail('Selecione uma imagem como comprovante.');
+        return p;
+      } });
+      if (result) return result;
+    }
+    if (path === '/users' && options.method === 'POST') {
+      admin(); const person = { id: id(), code: globalThis.SkytileTeam.nextCode(state.users), ...globalThis.SkytileTeam.validateProfile(body), role: 'worker', active: true, createdAt: now() }; if (Object.hasOwn(body, 'dailyRateCents')) globalThis.SkytileFinance.setRate(state, person.id, body.dailyRateCents); state.users.push(person); return person;
+    }
+    const userMatch = path.match(/^\/users\/([^/]+)$/);
+    if (userMatch && options.method === 'PATCH') {
+      admin(); const person = state.users.find(u => u.id === userMatch[1] && u.active !== false); if (!person) fail('Profissional não encontrado.');
+      const fields = globalThis.SkytileTeam.validateProfile(body, person);
+      if (Object.hasOwn(body, 'dailyRateCents')) globalThis.SkytileFinance.setRate(state, person.id, body.dailyRateCents);
+      Object.assign(person, fields); return person;
+    }
+    if (path === '/upload') {
+      const type = String(body.type).split(';')[0];
+      if (!/^(image\/(jpeg|png|webp|gif|heic|heif)|application\/pdf|audio\/(webm|mp4|ogg))$/.test(type)) fail('Formato de arquivo não suportado.');
+      if (!body.data || body.data.length > 16 * 1024 * 1024) fail('Limite de 12 MB por arquivo.');
+      return { name: body.name, type, url: `data:${type};base64,${body.data}` };
+    }
+    if (path === '/jobs') {
+      admin(); const rooms = body.rooms.map(r => ({ id: id(), name: required(r.name, 'o ambiente'), services: r.services.length ? r.services : ['Serviço geral'], region: null }));
+      const job = { id: id(), name: required(body.name, 'o nome'), address: required(body.address, 'o endereço'), description: body.description || '', status: 'planned', createdAt: now(), deliveredAt: null, cover: body.cover, initialPhotos: body.initialPhotos || [], plan: body.plan, demo: false, rooms, entries: [], assignments: [], events: [{ id: id(), type: 'created', at: now(), author: user.name, note: 'Obra cadastrada.' }] };
+      state.jobs.unshift(job); globalThis.SkytileFinance.migrate(state); return job;
+    }
+    const match = path.match(/^\/jobs\/([^/]+)\/(status|entries|assignments|rooms|plan|regions)$/);
+    if (match) {
+      const job = state.jobs.find(j => j.id === match[1]); if (!job) fail('Obra não encontrada.');
+      const action = match[2];let createdEntryId=null;
+      if (action !== 'entries') admin();
+      if (job.status === 'delivered' && !['status', 'plan', 'regions'].includes(action)) fail('Reabra a obra antes de continuar.');
+      if (action === 'entries') {
+        const room = job.rooms.find(r => r.id === body.roomId); if (!room || !room.services.includes(body.service)) fail('Selecione ambiente e serviço.');
+        if (!body.note?.trim() && !body.photos?.length && !body.audio) fail('Adicione uma foto, um relato ou um áudio.');
+        if (!Object.hasOwn(progressLabels, body.progress)) fail('Avanço inválido.');
+        createdEntryId=id();job.entries.push({ id: createdEntryId, at: now(), date: day(), authorId: user.id, author: user.name, roomId: body.roomId, service: body.service, phase: body.phase, progress: body.progress, note: body.note.trim(), photos: body.photos, audio: body.audio || null });
+        if (job.status === 'planned') { job.status = 'active'; job.events.push({ id: id(), type: 'status', at: now(), author: user.name, note: 'Execução iniciada com o primeiro registro.' }); }
+      } else if (action === 'status') {
+        if (!['planned', 'active', 'delivered'].includes(body.status)) fail('Status inválido.');
+        const reopen = job.status === 'delivered' && body.status !== 'delivered'; if (reopen) required(body.reason, 'o motivo da reabertura');
+        if (reopen) { const previous = [...job.events].reverse().find(e => e.type === 'delivered'); if (previous && !previous.scope) previous.scope = globalThis.SkytileProgress.completionScope(job); }
+        if (job.status !== body.status) job.events.push({ id: id(), at: now(), type: reopen ? 'reopened' : body.status === 'delivered' ? 'delivered' : 'status', author: user.name, ...(body.status === 'delivered' ? { scope: globalThis.SkytileProgress.completionScope(job) } : {}), note: reopen ? body.reason : body.status === 'delivered' ? 'Obra entregue. Histórico preservado.' : 'Execução iniciada.' });
+        job.status = body.status; job.deliveredAt = body.status === 'delivered' ? now() : null;
+      } else if (action === 'assignments') {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(body.date) || !Number.isFinite(Date.parse(body.date)) || new Date(body.date).toISOString().slice(0, 10) !== body.date) fail('Data inválida.');
+        const prior = job.assignments.find(a => a.date === body.date);
+        body.userIds = globalThis.SkytileTeam.validateAssignment(state.users, body.userIds, prior);
+        job.assignments = job.assignments.filter(a => a.date !== body.date);
+        job.assignments.push({ date: body.date, userIds: body.userIds, by: user.name, at: now() });
+        job.events.push({ id: id(), type: 'assignment', at: now(), author: user.name, previous: prior || null, note: `Equipe para ${body.date}: ${body.userIds.map(id => state.users.find(u => u.id === id).name).join(', ') || 'não definida'}.` });
+      } else if (action === 'rooms') {
+        job.rooms.push({ id: id(), name: required(body.name, 'o ambiente'), services: body.services.length ? body.services : ['Serviço geral'], region: null });
+      } else if (action === 'plan') { job.plan = body.plan; job.rooms.forEach(r => r.region = null); }
+      else if (action === 'regions') {
+        const room = job.rooms.find(r => r.id === body.roomId); if (!room) fail('Ambiente inválido.');
+        if (!job.plan || job.plan.type === 'application/pdf' || !Array.isArray(body.region) || body.region.length !== 4 || body.region.some(n => !Number.isFinite(n) || n < 0 || n > 1) || body.region[2] < .01 || body.region[3] < .01 || body.region[0] + body.region[2] > 1.001 || body.region[1] + body.region[3] > 1.001) fail('Área inválida.');
+        room.region = body.region;
+      }
+      return { ...globalThis.SkytileFinance.jobView(job, user), ...(createdEntryId?{createdEntryId}:{}) };
+    }
+    if (path === '/chat/audio') {
+      admin(); if (!body.audio) fail('Grave uma mensagem.');
+      const message = { id: id(), at: now(), author: user.name, question: 'Mensagem de áudio', audio: body.audio, answer: 'Áudio salvo nesta prévia. Transcrição não está conectada. Digite sua pergunta para consultar os registros.', sources: [], mode: 'local' };
+      state.chat.push(message); return message;
+    }
+    if (path === '/chat') {
+      admin(); const question = required(body.question, 'a pergunta');
+      const message = { id: id(), at: now(), author: user.name, question, ...globalThis.SkytileAssistant.respond(state, question, body.jobId, day()) }; state.chat.push(message); return message;
+    }
+    fail('Operação indisponível nesta prévia.');
+  }
+})();
+</script><script>// Browser-side preparation for mobile capture. The original record is independent of AI.
+(function () {
+  async function prepare(file) {
+    if (!file.type.startsWith('image/') && !/\.(heic|heif)$/i.test(file.name)) throw new Error('Selecione uma foto.');
+    const url=URL.createObjectURL(file);const img=new Image();
+    try {
+      await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=reject;img.src=url;});
+      const scale=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight));
+      const canvas=document.createElement('canvas');canvas.width=Math.max(1,Math.round(img.naturalWidth*scale));canvas.height=Math.max(1,Math.round(img.naturalHeight*scale));
+      const ctx=canvas.getContext('2d');ctx.fillStyle='#fff';ctx.fillRect(0,0,canvas.width,canvas.height);ctx.drawImage(img,0,0,canvas.width,canvas.height);
+      const blob=await new Promise(resolve=>canvas.toBlob(resolve,'image/jpeg',.88));canvas.width=0;canvas.height=0;
+      if(!blob)throw new Error('conversion');
+      return new File([blob],file.name.replace(/\.[^.]+$/,'')+'.jpg',{type:'image/jpeg'});
+    } catch {
+      if(file.size>12*1024*1024)throw new Error('Não foi possível preparar '+file.name+'. Escolha uma foto JPG menor.');
+      return file; // HEIC remains a valid saved attachment if this browser cannot decode it.
+    } finally {img.src='';URL.revokeObjectURL(url);}
+  }
+  function bind(form,{onError=()=>{}}={}) {
+    let selected=[],pending=0,disposed=false,queue=Promise.resolve();const list=form.querySelector('#entry-file-list');const save=form.querySelector('[type=submit]');
+    const draw=()=>{
+      if(disposed)return;list.innerHTML='';
+      for(const [index,p] of selected.entries()){
+        const row=document.createElement('div');row.className='photo-selection';
+        const image=document.createElement('img');image.src=p.url;image.alt='Foto selecionada';row.append(image);
+        const text=document.createElement('span');text.textContent=p.file.name+' · '+Math.ceil(p.file.size/1024)+' KB';row.append(text);
+        const remove=document.createElement('button');remove.type='button';remove.className='button ghost';remove.textContent='Remover';remove.setAttribute('aria-label','Remover foto '+(index+1));remove.onclick=()=>{URL.revokeObjectURL(p.url);selected.splice(index,1);draw();};row.append(remove);list.append(row);
+      }
+      const status=form.querySelector('#photo-preparation');status.textContent=pending?'Preparando fotos…':selected.length?`${selected.length} foto(s) pronta(s) para enviar.`:'';
+      save.disabled=pending>0;
+    };
+    const add=files=>{
+      if(selected.length+pending+files.length>12){onError('Selecione até 12 fotos por registro.');return;}
+      pending+=files.length;draw();
+      queue=queue.then(async()=>{
+        for(const f of files){try{const file=await prepare(f);if(!disposed)selected.push({file,url:URL.createObjectURL(file)});}catch(e){if(!disposed)onError(e.message);}finally{pending--;if(!disposed)draw();}}
+      });
+    };
+    for(const id of ['entry-photos','entry-camera'])form.querySelector('#'+id).onchange=e=>{const files=[...e.target.files];e.target.value='';add(files);};
+    form.querySelector('#take-photo').onclick=()=>form.querySelector('#entry-camera').click();
+    return {files:()=>selected.map(p=>p.file),preparing:()=>pending>0,dispose(){disposed=true;for(const p of selected)URL.revokeObjectURL(p.url);selected=[];}};
+  }
+  globalThis.SkytilePhotos={prepare,bind};
+})();
+</script><script>const icons = {
+  grid: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+  people: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M22 21v-2a4 4 0 0 0-3-3.87"/><circle cx="9" cy="7" r="4"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  chat: '<path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8z"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  arrow: '<path d="M5 12h14m-6-6 6 6-6 6"/>',
+  back: '<path d="m12 19-7-7 7-7M5 12h14"/>',
+  pin: '<path d="M20 10c0 6-8 12-8 12S4 16 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.5"/>',
+  camera: '<path d="M14.5 4h-5L7 7H3a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V8a1 1 0 0 0-1-1h-4z"/><circle cx="12" cy="13" r="4"/>',
+  clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  check: '<path d="m5 12 4 4L19 6"/>',
+  search: '<circle cx="10.5" cy="10.5" r="7.5"/><path d="m16 16 5 5"/>',
+  file: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6M8 13h8M8 17h5"/>',
+  mic: '<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/>',
+  close: '<path d="m6 6 12 12M6 18 18 6"/>',
+  spark: '<path d="m12 3 2.5 6.5L21 12l-6.5 2.5L12 21l-2.5-6.5L3 12l6.5-2.5z"/>',
+  alert: '<path d="m12 3 10 18H2zM12 9v4M12 17h.01"/>',
+  archive: '<rect x="3" y="3" width="18" height="4" rx="1"/><path d="M5 7v14h14V7M10 11h4"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+};
+const icon = (name, cls = '') => `<svg class="icon ${cls}" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${icons[name] || icons.file}</svg>`;
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const statusLabels = { planned: 'Planejada', active: 'Em andamento', delivered: 'Entregue' };
+const progressLabels = { not_started: 'Não iniciado', started: 'Iniciado', ongoing: 'Em andamento', almost: 'Quase concluído', review: 'Aguardando avaliação', done: 'Conclusão relatada' };
+const serviceOptions = ['Self-level', 'Tile no piso', 'Tile na parede', 'Rejunte', 'Preparação da base', 'Demolição', 'Serviço geral'];
+const { jobProgress, serviceProgress, stages } = globalThis.SkytileProgress;
+const { positions, skills: professionalSkills } = globalThis.SkytileTeam;
+const activeUsers = () => state.users.filter(u => u.active !== false);
+function progressBar(j, roomId = null, compact = false) {
+  const p = jobProgress(j, roomId);
+  const label = p.confirmed ? 'Entrega confirmada' : 'Avanço estimado';
+  const meta = p.confirmed ? 'Obra entregue pelo administrador' : p.known === 0 ? 'Aguardando estimativa dos serviços' : `${p.known} de ${p.total} serviços com estimativa${p.review ? ' · avaliação pendente' : ''}`;
+  return `<div class="completion ${compact ? 'compact' : ''} ${p.confirmed ? 'confirmed' : ''}"><div class="completion-heading"><span>${label}</span><strong>${p.confirmed ? '' : '≈ '}${p.percent}%</strong></div><div class="completion-track" role="progressbar" aria-label="${label} de ${esc(roomId ? j.rooms.find(r => r.id === roomId).name : j.name)}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${p.percent}" aria-valuetext="${p.percent}%${p.confirmed ? ', entrega confirmada' : ', estimativa'}"><span style="width:${p.percent}%"></span></div><div class="completion-caption">${meta}</div></div>`;
+}
+let state, view = 'jobs', filter = 'open', search = '', currentJob = null, currentRoom = null, currentRoute = location.hash || '#jobs', chatJob = '', sourceEntry = null;
+const profileStorage = {
+  get() { try { return localStorage.getItem('skytile-profile'); } catch { return null; } },
+  set(value) { try { localStorage.setItem('skytile-profile', value); } catch { /* A sandboxed preview can deny browser storage. */ } },
+};
+let profile = profileStorage.get() || 'thiago';
+let authenticatedMode = false;
+let photoCapture = null;
+let busy = false, recording = null, recordedAudio = null, audioPreview = null, modalReturnFocus = null, mapController = null;
+const app = document.querySelector('#app');
+const modalRoot = document.querySelector('#modal-root');
+const user = () => state.users.find(u => u.id === profile);
+const isAdmin = () => user()?.role === 'admin';
+const initials = name => name.split(/[ ·]+/).slice(0, 2).map(n => n[0]).join('').toUpperCase();
+const dateLabel = (value, time = false) => new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/New_York', day: '2-digit', month: 'short', ...(time ? { hour: '2-digit', minute: '2-digit' } : {}) }).format(new Date(value.includes('T') ? value : value + 'T12:00:00Z'));
+const toast = (message, error = false) => { const t = document.querySelector('#toast'); t.textContent = message; t.className = `show ${error ? 'error' : ''}`; clearTimeout(t.timer); t.timer = setTimeout(() => t.className = '', 4500); };
+async function api(path, options = {}) {
+  if (window.SkytileLocal) return window.SkytileLocal.request(path, options, profile);
+  const r = await fetch(new URL('./api' + path, document.baseURI), { method: options.method || 'GET', signal: AbortSignal.timeout(options.timeout || 10000), headers: { 'Content-Type': 'application/json', 'X-Skytile-User': profile }, ...(options.body ? { body: JSON.stringify(options.body) } : {}) });
+  const data = await r.json();
+  if (r.status === 401 && authenticatedMode && path !== '/auth/login') { state = null; renderLogin(); }
+  if (!r.ok) { const error = new Error(data.error || 'Falha ao comunicar com o servidor.'); error.status=r.status; throw error; } return data;
+}
+async function refresh() { state = await api('/state'); route(); }
+// Render from application state; a preview may intercept native fragment links.
+function navigate(path) {
+  const target = /^#(jobs|team|chat)(\/[^#?]+)*$/.test(path) ? path : '#jobs';
+  if (currentRoute !== target) {
+    try { history.pushState(null, '', target); } catch { /* URL history is optional in an embedded preview. */ }
+  }
+  window.scrollTo(0, 0);
+  route(target);
+}
+function route(path = currentRoute) {
+  currentRoute = path;
+  const [section, jobId, roomId] = path.slice(1).split('/');
+  view = ['jobs', 'team', 'chat'].includes(section) ? section : 'jobs';
+  currentJob = state?.jobs.find(j => j.id === jobId) || null;
+  currentRoom = currentJob?.rooms.find(r => r.id === roomId) || null;
+  if (view === 'chat' && !isAdmin()) { navigate('#jobs'); return; }
+  render();
+  if (sourceEntry) {
+    const entry = document.getElementById('entry-' + sourceEntry);
+    if (entry) { entry.classList.add('cited-entry'); entry.tabIndex = -1; entry.focus({ preventScroll: true }); entry.scrollIntoView({ block: 'center' }); }
+    sourceEntry = null;
+  }
+}
+const nav = (id, symbol, title) => `<a href="#${id}" class="nav-item ${view === id ? 'selected' : ''}">${icon(symbol)}<span>${title}</span>${view === id ? '<span class="nav-dot"></span>' : ''}</a>`;
+function render() {
+  if (!state) return;
+  app.innerHTML = `<aside class="sidebar"><a class="brand" href="#jobs" aria-label="Skytile, início"><span class="brand-word">SKY<span class="brand-star">✦</span>TILE</span><span class="brand-sub">FIELD OPERATIONS</span></a>
+    <div class="workspace-label">SEU ESPAÇO DE TRABALHO</div><nav>${nav('jobs', 'grid', 'Obras')}${nav('team', 'people', 'Equipe diária')}${isAdmin() ? nav('chat', 'spark', 'Assistente') : ''}</nav>
+    <div class="sidebar-bottom"><div class="local-indicator"><span></span> ${window.SkytileLocal ? 'Prévia no navegador' : authenticatedMode ? 'Espaço da equipe' : 'Ambiente local'}</div><p>Seu trabalho, organizado.<br>Um registro de cada vez.</p><div class="sidebar-version">SKYTILE · PROTÓTIPO 01</div></div></aside>
+    <div class="workspace"><header class="topbar"><div class="breadcrumbs">Skytile <span>/</span> ${view === 'team' ? 'Equipe diária' : view === 'chat' ? 'Assistente' : currentJob ? 'Obras / ' + esc(currentJob.name) : 'Visão geral'}</div><div class="profile-control"><span class="avatar">${initials(user().name)}</span>${authenticatedMode ? `<span>${esc(user().name)}</span><button class="button ghost" id="logout">Sair</button>` : `<span class="demo-label">Perfil de demonstração</span><select aria-label="Perfil de demonstração" id="profile">${activeUsers().map(u => `<option value="${u.id}" ${u.id === profile ? 'selected' : ''}>${esc(u.name)}${u.role === 'admin' ? ' · admin' : ''}</option>`).join('')}</select>`}</div></header>
+    <main>${view === 'chat' ? chatPage() : view === 'team' ? teamPage() : currentJob ? jobPage() : jobsPage()}</main>
+    <footer class="footer"><span>Skytile · Feito para o dia a dia da obra</span><span>${window.SkytileLocal ? 'Dados neste navegador' : 'Dados no servidor da equipe'}</span></footer></div>
+    <nav class="mobile-nav">${nav('jobs', 'grid', 'Obras')}${nav('team', 'people', 'Equipe')}${isAdmin() ? nav('chat', 'spark', 'Assistente') : ''}</nav>`;
+  const profileSelect = document.querySelector('#profile');
+  if (profileSelect) profileSelect.onchange = async e => { closeModal(); profile = e.target.value; profileStorage.set(profile); try { state = await api('/state'); route(); } catch (e) { toast(e.message, true); } };
+  const logout = document.querySelector('#logout');
+  if (logout) logout.onclick = async () => {
+    if (busy) return;
+    try { await api('/auth/logout', { method:'POST', body:{} }); closeModal(); state=null; currentJob=null; currentRoom=null; renderLogin(); } catch(e) { toast(e.message,true); }
+  };
+  bindPage();
+  syncChatBusy();
+  const previewStatus = document.querySelector('#preview-status');
+  if (previewStatus) {
+    previewStatus.dataset.mode = 'interactive';
+    previewStatus.innerHTML = '<strong>Interativo · v0.3.1</strong> — obras, equipe e consultas disponíveis.';
+  }
+}
+function jobsPage() {
+  const open = state.jobs.filter(j => j.status !== 'delivered');
+  const updated = open.filter(j => j.entries.some(e => e.date === state.today)).length;
+  const pending = open.reduce((count,j)=>count+j.rooms.reduce((n,r)=>n+r.services.filter(s=>{const e=[...j.entries].reverse().find(e=>e.roomId===r.id&&e.service===s);return e?.progress==='review'||needsVisualReview(e);}).length,0),0);
+  const jobs = state.jobs.filter(j => (filter === 'open' ? j.status !== 'delivered' : j.status === 'delivered') && (j.name + j.address).toLowerCase().includes(search.toLowerCase()));
+  return `<section class="page-heading"><div><div class="eyebrow">ACOMPANHAMENTO DE CAMPO</div><h1>Cada obra, um passo à frente.</h1><p>Acompanhe os ambientes, registre o avanço e mantenha a equipe conectada.</p></div>${isAdmin() ? `<button class="button primary" data-action="new-job">${icon('plus')} Nova obra</button>` : ''}</section>
+    <div class="demo-banner">${icon('file')}<span>Explore com dados de exemplo. As obras marcadas como <strong>DEMO</strong> são fictícias. ${window.SkytileLocal ? window.SkytileLocal.persistent ? 'Seus registros ficam neste navegador, separados do servidor.' : 'Este visualizador não permite armazenamento; os registros duram enquanto esta prévia estiver aberta.' : 'Seus novos registros são salvos neste ambiente.'}</span></div>
+    <section class="stats"><div class="stat"><div class="stat-top">Obras abertas ${icon('grid')}</div><div class="stat-value">${String(open.length).padStart(2, '0')}<span>planejadas e em execução</span></div></div><div class="stat"><div class="stat-top">Atualizadas hoje ${icon('camera')}</div><div class="stat-value">${String(updated).padStart(2, '0')}<span>com registros do dia</span></div></div><div class="stat"><div class="stat-top">Aguardando avaliação ${icon('clock')}</div><div class="stat-value">${String(pending).padStart(2, '0')}<span>serviços para revisar</span></div></div></section>
+    <div class="list-toolbar"><div class="tabs"><button class="tab ${filter === 'open' ? 'active' : ''}" data-filter="open">Obras abertas <span>${open.length}</span></button><button class="tab ${filter === 'delivered' ? 'active' : ''}" data-filter="delivered">${icon('archive')} Finalizadas</button></div><label class="search">${icon('search')}<input id="job-search" placeholder="Buscar obra ou endereço" value="${esc(search)}" aria-label="Buscar obra ou endereço"></label></div>
+    <section class="jobs-grid" id="jobs-grid">${jobs.length ? jobs.map(jobCard).join('') : `<div class="empty">${icon('grid')}<h3>Nenhuma obra por aqui.</h3><p>${search ? 'Tente outro nome ou endereço.' : filter === 'open' ? 'Cadastre uma obra para começar a registrar o avanço.' : 'As obras entregues aparecerão aqui, com todo o histórico.'}</p></div>`}</section>
+    <section class="workflow-note"><span class="note-icon">${icon('people')}</span><div><strong>A equipe muda. O histórico fica.</strong><p>Todos podem acessar as obras abertas. A escala diária organiza quem vai a cada obra, sem bloquear o acesso.</p></div><a href="#team">Ver equipe diária ${icon('arrow')}</a></section>`;
+}
+function jobCard(j) {
+  const assignment = j.assignments.find(a => a.date === state.today);
+  const entry = j.entries.at(-1);
+  return `<a class="job-card" href="#jobs/${j.id}"><div class="job-cover ${j.cover ? 'with-photo' : ''}">${j.cover ? `<img src="${esc(j.cover.url)}" alt="Foto inicial de ${esc(j.name)}">` : `<div class="tile-grid tile-${j.id === 'demo-newark' ? 'warm' : 'blue'}"><span></span><span></span><span></span><span></span><span></span><span></span></div><span class="cover-caption">${j.rooms.length > 1 ? 'MULTI-AMBIENTE' : 'AMBIENTE ÚNICO'}</span>`}<span class="badge status-${j.status}"><i></i>${statusLabels[j.status]}</span>${j.demo ? '<span class="demo-chip">DEMO</span>' : ''}</div><div class="job-card-content"><div class="card-title"><h3>${esc(j.name)}</h3>${icon('arrow')}</div><div class="address">${icon('pin')} ${esc(j.address)}</div><div class="card-meta"><span>${icon('grid')} ${j.rooms.length} ${j.rooms.length === 1 ? 'ambiente' : 'ambientes'}</span><span>${icon('camera')} ${j.entries.length} registros</span></div>${progressBar(j, null, true)}${financeCard(j)}<div class="card-bottom"><span class="small-avatar">${assignment?.userIds.length ? initials(state.users.find(u => u.id === assignment.userIds[0]).name) : icon('people')}</span><span>${assignment?.userIds.length ? assignment.userIds.map(id => esc(state.users.find(u => u.id === id).name)).join(', ') : 'Equipe do dia a definir'}</span></div><div class="last-update">${entry ? `Último registro · ${dateLabel(entry.at)}` : 'Pronta para o primeiro registro'}</div></div></a>`;
+}
+function jobPage() {
+  const j = currentJob, r = currentRoom;
+  return `<a class="back-link" href="${r ? '#jobs/' + j.id : '#jobs'}">${icon('back')} ${r ? 'Todos os ambientes' : 'Todas as obras'}</a>
+    <section class="page-heading detail-heading"><div><div class="eyebrow">${r ? esc(j.name).toUpperCase() : 'VISÃO DA OBRA'} ${j.demo ? '<span class="inline-demo">DEMO</span>' : ''}</div><h1>${esc(r ? r.name : j.name)}</h1><p class="address">${icon('pin')} ${esc(j.address)}</p></div><div class="heading-actions">${r ? '' : `<span class="badge status-${j.status}"><i></i>${statusLabels[j.status]}</span>`}${j.status !== 'delivered' ? `<button class="button primary" data-action="new-entry">${icon('camera')} Registrar avanço</button>` : ''}</div></section>
+    ${j.status === 'delivered' ? `<div class="notice success">${icon('check')}<div><strong>Obra entregue. Histórico preservado.</strong><p>Um ajuste necessário pode ser registrado após a reabertura.</p></div>${isAdmin() ? '<button class="button secondary" data-action="reopen">Reabrir para ajuste</button>' : ''}</div>` : ''}
+    <section class="completion-panel">${progressBar(j, r?.id)}<button class="button ghost" data-action="progress-info">Como calculamos?</button></section>
+    ${!r && isAdmin() ? financePanel(j) : ''}
+    ${r ? roomDetail(j, r) : jobOverview(j)}
+    ${!r && !isAdmin() ? financePanel(j) : ''}
+    <section class="section timeline-section"><div class="section-heading"><div><h2>${r ? 'Registros deste ambiente' : 'Linha do tempo da obra'}</h2><p>Fotos, relatos e decisões, preservados em sequência.</p></div><span class="count">${r ? j.entries.filter(e => e.roomId === r.id).length : j.entries.length} registros</span></div>${timeline(j, r)}</section>`;
+}
+function jobOverview(j) {
+  const a = j.assignments.find(a => a.date === state.today);
+  const regions = j.rooms.filter(r => r.region);
+  return `<div class="job-summary"><div class="scope-summary"><span class="eyebrow">ESCOPO INICIAL</span><p>${esc(j.description || 'Ainda sem descrição do serviço.')}</p></div><div class="daily-team"><div><span class="eyebrow">EQUIPE DE HOJE · ${dateLabel(state.today)}</span><p>${a?.userIds.length ? a.userIds.map(id => `<span class="person-chip">${esc(state.users.find(u => u.id === id).name)}</span>`).join('') : 'Nenhuma equipe anotada.'}</p></div>${isAdmin() && j.status !== 'delivered' ? '<button class="button ghost" data-action="assignment">Definir equipe</button>' : ''}</div></div>
+    <section class="section"><div class="section-heading"><div><h2>Ambientes e serviços</h2><p>Escolha onde você trabalhou para ver ou registrar o avanço.</p></div>${isAdmin() && j.status !== 'delivered' ? `<button class="button secondary" data-action="new-room">${icon('plus')} Ambiente</button>` : ''}</div>
+    <div class="rooms-grid">${j.rooms.map(r => roomCard(j, r)).join('')}</div></section>
+    ${j.plan ? `<section class="section plan-section"><div class="section-heading"><div><h2>Planta da obra</h2><p>${j.plan.type === 'application/pdf' ? 'PDF anexado. Para marcar áreas, envie uma versão em imagem.' : 'Toque em uma área marcada para abrir o ambiente.'}</p></div>${isAdmin() && j.plan.type !== 'application/pdf' && j.status !== 'delivered' ? '<button class="button secondary" data-action="map-room">Marcar ambiente</button>' : ''}</div>${j.plan.type === 'application/pdf' ? `<a class="file-link" href="${esc(j.plan.url)}" target="_blank" rel="noopener">${icon('file')} ${esc(j.plan.name)} ${icon('arrow')}</a>` : `<div class="plan-canvas"><img src="${esc(j.plan.url)}" alt="Planta de ${esc(j.name)}">${regions.map(r => `<a class="plan-region" href="#jobs/${j.id}/${r.id}" style="left:${r.region[0]*100}%;top:${r.region[1]*100}%;width:${r.region[2]*100}%;height:${r.region[3]*100}%"><span>${esc(r.name)}</span></a>`).join('')}</div>`}</section>` : `<div class="plan-placeholder">${icon('file')}<div><strong>Planta opcional</strong><p>Os cartões de ambientes já organizam a obra. Se houver planta, você pode anexá-la e marcar as áreas.</p></div>${isAdmin() && j.status !== 'delivered' ? '<button class="button secondary" data-action="upload-plan">Anexar planta</button>' : ''}</div>`}
+    ${j.initialPhotos?.length ? `<section class="section"><div class="section-heading"><div><h2>Fotos iniciais</h2><p>Referência da obra no momento do cadastro.</p></div></div><div class="photo-gallery">${j.initialPhotos.map(p => photo(p)).join('')}</div></section>` : ''}
+    ${isAdmin() && j.status !== 'delivered' ? `<div class="admin-actions"><span>Gestão da obra</span>${j.status === 'planned' ? '<button class="button secondary" data-action="start-job">Iniciar execução</button>' : ''}<button class="button secondary" data-action="deliver">${icon('check')} Marcar como entregue</button></div>` : ''}`;
+}
+function roomCard(j, r) {
+  const last = [...j.entries].reverse().find(e => e.roomId === r.id);
+  return `<a class="room-card" href="#jobs/${j.id}/${r.id}"><div class="room-card-top"><span class="room-icon">${icon('grid')}</span>${icon('arrow')}</div><h3>${esc(r.name)}</h3><div class="service-tags">${r.services.map(s => `<span>${esc(s)}</span>`).join('')}</div>${progressBar(j, r.id, true)}<div class="room-bottom">${last ? `<span class="progress-badge progress-${last.progress}">${progressLabels[last.progress]}</span><span>${dateLabel(last.at)}</span>` : '<span class="progress-badge">Sem registro</span><span>Registrar o início</span>'}</div>${last ? `<p class="room-last-service">Último relato: ${esc(last.service)}</p>` : ''}</a>`;
+}
+function roomDetail(j, r) {
+  return `<div class="service-status-grid">${r.services.map(s => { const e = [...j.entries].reverse().find(e => e.roomId === r.id && e.service === s); return `<div class="service-status"><span class="eyebrow">SERVIÇO</span><h3>${esc(s)}</h3><span class="progress-badge progress-${e?.progress || 'not_started'}">${e ? progressLabels[e.progress] : 'Sem registro'}</span><p>${e ? `Relatado por ${esc(e.author)} · ${dateLabel(e.at)}` : 'O primeiro registro cria a referência.'}</p></div>`; }).join('')}</div><div class="info-strip">${icon('clock')} O último registro pode servir como referência para o início do próximo dia. Registre uma nova condição quando necessário.</div>`;
+}
+function photo(p) { return `<a href="${esc(p.url)}" target="_blank" rel="noopener" class="photo-item">${p.url.endsWith('.heic') || /image\/hei[cf]/.test(p.type) ? `<span>${icon('file')} Foto HEIC · abrir arquivo</span>` : `<img loading="lazy" src="${esc(p.url)}" alt="${esc(p.name || 'Foto do registro')}">`}</a>`; }
+function timeline(j, r) {
+  const items = [...j.entries.filter(e => !r || e.roomId === r.id).map(e => ({ ...e, kind: 'entry' })), ...(!r ? j.events.map(e => ({ ...e, kind: 'event' })) : [])].sort((a, b) => b.at.localeCompare(a.at));
+  if (!items.length) return `<div class="empty compact">${icon('camera')}<h3>O histórico começa com o primeiro registro.</h3><p>Uma foto e um relato já ajudam a contar o que aconteceu.</p></div>`;
+  return `<div class="timeline">${items.map(e => e.kind === 'event' ? `<div class="timeline-event"><span class="event-dot"></span><p><strong>${esc(e.author)}</strong> · ${esc(e.note)}</p><time>${dateLabel(e.at, true)}</time></div>` : `<article class="entry-card" id="entry-${e.id}"><div class="entry-header"><span class="avatar small">${initials(e.author)}</span><div><strong>${esc(e.author)}</strong><span>${dateLabel(e.at, true)} · ${e.phase === 'start' ? 'Início do dia' : e.phase === 'end' ? 'Fim do dia' : 'Atualização'}</span></div>${e.demo ? '<span class="inline-demo">DEMO</span>' : ''}<span class="progress-badge progress-${e.progress}">${progressLabels[e.progress]}</span></div><div class="entry-location">${icon('grid')} ${esc(j.rooms.find(r => r.id === e.roomId)?.name)} <span>/</span> ${esc(e.service)}</div>${e.note ? `<p class="entry-note">${esc(e.note)}</p>` : ''}${e.photos.length ? `<div class="photo-gallery">${e.photos.map(photo).join('')}</div>` : ''}${e.audio ? `<audio controls preload="none" src="${esc(e.audio.url)}"></audio><p class="audio-note">Áudio original · sem transcrição automática no modo local</p>` : ''}${analysisPanel(j,e)}<div class="entry-foot">${icon('file')} Informação relatada pela equipe. Não representa avaliação técnica automática.</div></article>`).join('')}</div>`;
+}
+function teamPage() {
+  const open = state.jobs.filter(j => j.status !== 'delivered');
+  return `<section class="page-heading"><div><div class="eyebrow">PESSOAS E ORGANIZAÇÃO DO DIA</div><h1>Uma equipe, várias obras.</h1><p>Cadastre os profissionais e organize a escala. Todas as obras abertas continuam acessíveis.</p></div><div class="heading-actions"><div class="date-pill">${icon('sun')} ${dateLabel(state.today)}</div>${isAdmin() ? `<button class="button primary" data-action="new-person">${icon('plus')} Novo profissional</button>` : ''}</div></section>
+    <section class="section"><div class="section-heading"><div><h2>Profissionais cadastrados</h2><p>Nome, ID e função. As habilidades podem ser informadas quando você souber.</p></div><span class="count">${activeUsers().length} cadastros</span></div><div class="people-list">${activeUsers().map(u => `<div class="person-row"><span class="avatar">${initials(u.name)}</span><div><strong>${esc(u.name)} <span class="person-id">${esc(u.code)}</span></strong><span>${esc(positions[u.position] || u.specialty)}</span><div class="person-skills">${u.skills?.length ? u.skills.map(s => `<span>${esc(s)}</span>`).join('') : `<small>${u.position === 'management' ? 'Gestão da companhia' : 'Etapas ainda não informadas'}</small>`}</div></div><span class="role-chip">${u.role === 'admin' ? 'Administrador' : 'Colaborador'}</span>${isAdmin() ? `<button class="button ghost person-edit" data-action="edit-person" data-job="${u.id}" aria-label="Editar ${esc(u.name)}">Editar</button>${authenticatedMode ? `<button class="button ghost person-access" data-action="person-access" data-job="${u.id}" aria-label="Definir acesso de ${esc(u.name)}">Acesso</button>` : ''}` : ''}</div>`).join('')}</div></section>
+    <div class="info-strip">${icon('people')} A função profissional e o acesso ao sistema são independentes. Flavio é instalador e administrador; Thiago está cadastrado na gestão.</div>
+    <section class="section"><div class="section-heading"><div><h2>Equipe por obra · hoje</h2><p>A escala muda por dia. O autor de cada registro é salvo separadamente.</p></div></div><div class="team-grid">${open.map(j => { const a = j.assignments.find(a => a.date === state.today); return `<article class="team-card"><span class="badge status-${j.status}"><i></i>${statusLabels[j.status]}</span><h3><a href="#jobs/${j.id}">${esc(j.name)}</a></h3><p class="address">${icon('pin')} ${esc(j.address)}</p><div class="assigned-people">${a?.userIds.length ? a.userIds.map(id => { const u = state.users.find(u => u.id === id); return `<div class="assigned-person"><span class="avatar small">${initials(u.name)}</span><div><strong>${esc(u.name)}</strong><span>${esc(u.code)} · ${esc(positions[u.position] || u.specialty)}</span></div></div>`; }).join('') : '<div class="unassigned">Equipe ainda não anotada para hoje.</div>'}</div>${isAdmin() ? `<button class="button secondary full" data-action="assignment" data-job="${j.id}">${icon('people')} Definir equipe / consultar dia</button>` : ''}</article>`; }).join('') || '<div class="empty">Não há obras abertas para organizar.</div>'}</div></section>`;
+}
+function chatPage() {
+  return `<section class="page-heading"><div><div class="eyebrow">CONSULTA DOS REGISTROS</div><h1>Uma conversa sobre suas obras.</h1><p>Consulte o avanço, as pendências e a equipe com base no que foi registrado.</p></div><span class="local-pill"><span></span> Consulta local</span></section><div class="notice"><span class="note-icon">${icon('spark')}</span><div><strong>Chat de consultas locais</strong><p>Este chat usa consultas predefinidas, com links para as fontes. A análise de fotos acontece nos registros, quando ativada. Áudios ainda não são transcritos.</p></div></div><section class="chat-layout"><div class="chat-main"><div class="chat-thread" id="chat-thread">${state.chat.length ? state.chat.map(chatMessage).join('') : `<div class="chat-welcome"><span class="assistant-orb">✦</span><h2>O que vamos acompanhar hoje?</h2><p>Comece pelos registros da equipe.<br>As respostas mostram de onde veio cada informação.</p><div class="prompt-grid">${['Resuma o avanço das obras', 'Quais são as pendências?', 'Quem está na equipe de hoje?', 'Quais obras estão abertas?'].map(p => `<button data-prompt="${esc(p)}">${esc(p)} ${icon('arrow')}</button>`).join('')}</div></div>`}</div><form id="chat-form" class="chat-composer"><div class="chat-shortcuts" aria-label="Sugestões de consulta">${['Como estão os custos das obras?', 'Como estão os prazos?', 'Percentual de conclusão', 'Quais são as pendências?', 'Quem está na equipe de hoje?', 'Quais profissionais estão cadastrados?'].map(p => `<button type="button" data-prompt="${esc(p)}">${esc(p)}</button>`).join('')}</div><label class="chat-scope">Consultar <select id="chat-job"><option value="">Todas as obras abertas</option>${state.jobs.map(j => `<option value="${j.id}" ${j.id === chatJob ? 'selected' : ''}>${esc(j.name)}</option>`).join('')}</select></label><div class="composer-row"><textarea id="chat-question" rows="2" maxlength="2000" placeholder="Ex.: quais serviços aguardam avaliação?" aria-label="Pergunta sobre as obras"></textarea><button type="button" class="icon-button" data-action="chat-audio" aria-label="Gravar mensagem de áudio">${icon('mic')}</button><button class="button primary send-button" aria-label="Enviar pergunta">${icon('arrow')}</button></div><span class="composer-note">Consulta disponível para administradores · sem análise técnica automática</span></form></div><aside class="chat-guide"><div class="eyebrow">DISPONÍVEL AGORA</div><h3>O histórico dá contexto.</h3><ul><li>${icon('check')} Obras e ambientes</li><li>${icon('check')} Relatos e etapas</li><li>${icon('check')} Pendências registradas</li><li>${icon('check')} Equipes por dia</li></ul><div class="guide-divider"></div><div class="eyebrow">PRÓXIMAS POSSIBILIDADES</div><p>Análise de fotos nos registros quando a IA estiver ativada. Transcrição de voz, materiais e ferramentas dependem de novas integrações e dados.</p></aside></section>`;
+}
+function chatMessage(m) { return `<div class="chat-question"><span class="message-author">${esc(m.author)}</span><p>${esc(m.question)}</p>${m.audio ? `<audio controls src="${esc(m.audio.url)}"></audio>` : ''}</div><div class="chat-answer"><span class="assistant-mini">✦</span><div><span class="message-author">Skytile · consulta local</span><p>${esc(m.answer)}</p>${m.sources.length ? `<div class="source-links">${m.sources.map(s => `<a href="${s.kind === 'team' ? '#team' : '#jobs/' + s.jobId + (s.roomId ? '/' + s.roomId : '')}" data-entry="${s.entryId || ''}">${icon('file')}${esc(s.label)}</a>`).join('')}</div>` : ''}</div></div>`; }
+function bindPage() {
+  document.querySelectorAll('[data-action]').forEach(b => b.onclick = () => b.dataset.action === 'analyze-entry' ? analyzeEntry(currentJob.id,b.dataset.entryId) : b.dataset.action === 'review-analysis' ? analysisReviewModal(currentJob,b.dataset.entryId) : b.dataset.action === 'analysis-refresh' ? refresh().catch(e=>toast(e.message,true)) : b.dataset.action === 'expense-review' ? expenseReviewModal(currentJob, b.dataset.expense, b.dataset.decision) : runAction(b.dataset.action, b.dataset.job));
+  document.querySelectorAll('[data-filter]').forEach(b => b.onclick = () => { filter = b.dataset.filter; render(); });
+  const s = document.querySelector('#job-search');
+  if (s) s.oninput = e => { search = e.target.value; const start = s.selectionStart; render(); const n = document.querySelector('#job-search'); n.focus(); n.setSelectionRange(start, start); };
+  document.querySelectorAll('[data-prompt]').forEach(b => b.onclick = () => { document.querySelector('#chat-question').value = b.dataset.prompt; document.querySelector('#chat-form').requestSubmit(); });
+  const scope = document.querySelector('#chat-job');
+  if (scope) scope.onchange = () => { chatJob = scope.value; };
+  app.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.dataset.route = a.getAttribute('href');
+    a.onclick = e => {
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault(); e.stopPropagation();
+      sourceEntry = a.dataset.entry || null;
+      navigate(a.dataset.route);
+    };
+  });
+  const form = document.querySelector('#chat-form');
+  if (form) form.onsubmit = async e => {
+    e.preventDefault(); if (busy) return; const question = document.querySelector('#chat-question').value.trim(); if (!question) { toast('Digite uma pergunta para consultar os registros.', true); document.querySelector('#chat-question').focus(); return; }
+    await submit(form, async () => { await api('/chat', { method: 'POST', body: { question, jobId: document.querySelector('#chat-job').value || null } }); await refresh(); const t = document.querySelector('#chat-thread'); t.scrollTop = t.scrollHeight; document.querySelector('#chat-question').focus(); });
+  };
+}
+function syncChatBusy() {
+  document.querySelectorAll('[data-prompt], #chat-form button, #chat-job, #chat-question').forEach(el => el.disabled = busy);
+  document.querySelector('#chat-form')?.setAttribute('aria-busy', String(busy));
+}
+async function submit(form, fn) {
+  if (busy) return; busy = true; syncChatBusy(); const buttons = [...form.querySelectorAll('button')]; buttons.forEach(b => b.disabled = true); form.setAttribute('aria-busy', 'true');
+  try { await fn(); } catch (e) { toast(e.message, true); const msg = form.querySelector('.form-error'); if (msg) { msg.textContent = e.message; msg.hidden = false; } }
+  finally { busy = false; syncChatBusy(); buttons.forEach(b => b.disabled = false); form.removeAttribute('aria-busy'); }
+}
+function runAction(action, jobId) {
+  const job = jobId ? state.jobs.find(j => j.id === jobId) : currentJob;
+  if (action === 'finance-settings') financeSettingsModal(job);
+  else if (action === 'new-expense') expenseModal(job);
+  else if (action === 'labor') laborModal(job);
+  else if (action === 'new-job') newJobModal();
+  else if (action === 'new-entry') entryModal(job);
+  else if (action === 'assignment') assignmentModal(job);
+  else if (action === 'new-room') roomModal(job);
+  else if (action === 'upload-plan') planModal(job);
+  else if (action === 'map-room') mapModal(job);
+  else if (action === 'chat-audio') chatAudioModal();
+  else if (action === 'deliver') statusModal(job, 'delivered');
+  else if (action === 'reopen') statusModal(job, 'active');
+  else if (action === 'start-job') statusModal(job, 'active');
+  else if (action === 'progress-info') {
+    modal('Como estimamos o avanço', 'Uma referência simples para acompanhar a execução.', `<div class="form-body"><p class="field-hint">Cada serviço de cada ambiente tem o mesmo peso nesta versão. Consideramos o último avanço informado e arredondamos a média para intervalos de 5 pontos.</p><div class="progress-legend">${Object.entries(stages).map(([key, value]) => `<div><span>${progressLabels[key]}</span><strong>${value}%</strong></div>`).join('')}</div><p class="field-hint">Sem estimativa, o serviço contribui com 0%; isso não comprova que ele não começou. “Aguardando avaliação” mantém a última estimativa, sem acrescentar avanço. A contagem informa quantos serviços têm estimativa.</p><p class="field-hint">O percentual não considera metragem ou duração e não é medição técnica. 100% relatado não confirma entrega: Thiago ou Flavio precisam entregar a obra. Ao reabrir, os serviços entregues mantêm a referência até um novo relato; ajustes podem atualizar o avanço.</p></div><div class="modal-foot"><button class="button primary" data-cancel>Entendi</button></div>`);
+    attachCancel();
+  }
+  else if (action === 'new-person') personModal();
+  else if (action === 'edit-person') personModal(state.users.find(u => u.id === jobId));
+  else if (action === 'person-access') accessModal(state.users.find(u => u.id === jobId));
+}
+function modal(title, subtitle, contents, wide = false) {
+  closeModal(); modalReturnFocus = document.activeElement;
+  modalRoot.innerHTML = `<div class="modal-backdrop"><section class="modal ${wide ? 'wide' : ''}" role="dialog" aria-modal="true" aria-labelledby="modal-title"><div class="modal-head"><div><h2 id="modal-title">${esc(title)}</h2><p>${esc(subtitle)}</p></div><button class="icon-button" id="close-modal" aria-label="Fechar">${icon('close')}</button></div>${contents}</section></div>`;
+  document.body.classList.add('modal-open');
+  document.querySelector('#close-modal').onclick = closeModal;
+  document.querySelector('.modal-backdrop').onclick = e => { if (e.target.classList.contains('modal-backdrop')) closeModal(); };
+  setTimeout(() => modalRoot.querySelector('input:not([type=hidden]),textarea,select,button')?.focus(), 20);
+}
+function closeModal() {
+  if (busy) return;
+  if (recording) { recording.cancelled = true; recording.recorder.stop(); recording.stream.getTracks().forEach(t => t.stop()); recording = null; }
+  photoCapture?.dispose(); photoCapture=null;
+  if (audioPreview) URL.revokeObjectURL(audioPreview);
+  recordedAudio = null; audioPreview = null; mapController?.abort(); mapController = null;
+  modalRoot.innerHTML = ''; document.body.classList.remove('modal-open'); modalReturnFocus?.focus(); modalReturnFocus = null;
+}
+function closeAfterSave() { const was = busy; busy = false; closeModal(); busy = was; }
+document.addEventListener('keydown', e => {
+  if (!modalRoot.children.length) return;
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Tab') { const f = [...modalRoot.querySelectorAll('button,input,select,textarea,a')].filter(el => !el.disabled && el.getClientRects().length); if (e.shiftKey && document.activeElement === f[0]) { e.preventDefault(); f.at(-1)?.focus(); } else if (!e.shiftKey && document.activeElement === f.at(-1)) { e.preventDefault(); f[0]?.focus(); } }
+});
+const formFoot = (label = 'Salvar') => `<p class="form-error" hidden role="alert"></p><div class="modal-foot"><button type="button" class="button secondary" data-cancel>Cancelar</button><button class="button primary" type="submit">${esc(label)} ${icon('arrow')}</button></div>`;
+const servicesChecks = (prefix, selected = ['Tile no piso']) => `<div class="checkbox-grid">${serviceOptions.map(s => `<label><input type="checkbox" name="${prefix}" value="${esc(s)}" ${selected.includes(s) ? 'checked' : ''}>${esc(s)}</label>`).join('')}</div>`;
+function attachCancel() { modalRoot.querySelectorAll('[data-cancel]').forEach(b => b.onclick = closeModal); }
+async function upload(file) {
+  if (file.size > 12 * 1024 * 1024) throw new Error(`${file.name}: limite de 12 MB por arquivo.`);
+  const data = await new Promise((resolve, reject) => { const r = new FileReader(); r.onload = () => resolve(r.result.split(',')[1]); r.onerror = () => reject(new Error('Não foi possível ler o arquivo.')); r.readAsDataURL(file); });
+  const type = file.type || (/\.heic$/i.test(file.name) ? 'image/heic' : /\.heif$/i.test(file.name) ? 'image/heif' : '');
+  return api('/upload', { method: 'POST', body: { name: file.name, type, data } });
+}
+function uploadPreview(input, container) {
+  input.onchange = () => { container.innerHTML = ''; for (const f of input.files) { const line = document.createElement('div'); line.className = 'selected-file'; line.textContent = f.name + ' · ' + (f.size / 1024 / 1024).toFixed(1) + ' MB'; container.append(line); } };
+}
+function newJobModal() {
+  modal('Uma nova obra começa aqui.', 'Só as informações que ajudam a organizar o trabalho.', `<form id="new-job-form"><div class="form-body"><div class="form-row"><label>Nome da obra <input name="name" required maxlength="160" placeholder="Ex.: Apartamento · Manhattan"></label><label>Endereço <input name="address" required maxlength="300" placeholder="Rua, cidade e estado"></label></div><label>O que será feito? <span class="optional">opcional</span><textarea name="description" rows="2" maxlength="5000" placeholder="Pode ser o combinado inicial com o cliente."></textarea></label><fieldset><legend>Como vamos organizar?</legend><div class="choice-row"><label><input type="radio" name="layout" value="single" checked> Um ambiente</label><label><input type="radio" name="layout" value="multiple"> Vários ambientes</label></div></fieldset><div id="room-fields"></div><button type="button" class="button ghost" id="add-room" hidden>${icon('plus')} Adicionar ambiente</button><div class="form-row"><label class="upload-label">${icon('camera')} Fotos iniciais <span class="optional">opcional</span><input id="initial-photos" type="file" accept="image/*,.heic,.heif" multiple><span class="field-hint">Até 12 fotos · 12 MB por arquivo</span><div id="initial-file-list"></div></label><label class="upload-label">${icon('file')} Planta <span class="optional">opcional</span><input id="initial-plan" type="file" accept="image/jpeg,image/png,image/webp,application/pdf"><span class="field-hint">Imagem ou PDF · 12 MB</span><div id="plan-file-list"></div></label></div></div>${formFoot('Criar obra')}</form>`, true);
+  let count = 0;
+  const addRoom = () => { const key = ++count; const wrapper = document.createElement('div'); wrapper.className = 'room-field'; wrapper.dataset.key = key; wrapper.innerHTML = `<div class="room-field-head"><label>Nome do ambiente <input name="room-${key}" required maxlength="120" placeholder="Ex.: Banheiro" value="${count === 1 ? 'Ambiente principal' : ''}"></label><button type="button" class="icon-button remove-room" aria-label="Remover ambiente">${icon('close')}</button></div><span class="field-title">Serviços previstos</span>${servicesChecks('services-' + key)}`; wrapper.querySelector('.remove-room').onclick = () => { if (document.querySelectorAll('.room-field').length > 1) wrapper.remove(); else toast('Mantenha pelo menos um ambiente.'); }; document.querySelector('#room-fields').append(wrapper); };
+  addRoom();
+  document.querySelector('#add-room').onclick = addRoom;
+  modalRoot.querySelectorAll('[name=layout]').forEach(i => i.onchange = () => { const multi = i.value === 'multiple'; document.querySelector('#add-room').hidden = !multi; if (multi && document.querySelectorAll('.room-field').length === 1) addRoom(); if (!multi) { document.querySelectorAll('.room-field').forEach((r, n) => { if (n > 0) r.remove(); }); } });
+  uploadPreview(document.querySelector('#initial-photos'), document.querySelector('#initial-file-list'));
+  uploadPreview(document.querySelector('#initial-plan'), document.querySelector('#plan-file-list'));
+  attachCancel();
+  document.querySelector('#new-job-form').onsubmit = e => { e.preventDefault(); const f = e.target; submit(f, async () => {
+    const photos = [...document.querySelector('#initial-photos').files]; if (photos.length > 12) throw new Error('Selecione até 12 fotos iniciais.');
+    const rooms = [...document.querySelectorAll('.room-field')].map(r => ({ name: r.querySelector('input[name^=room-]').value, services: [...r.querySelectorAll('input[type=checkbox]:checked')].map(i => i.value) }));
+    const initialPhotos = []; for (const photo of photos) initialPhotos.push(await upload(photo));
+    const p = document.querySelector('#initial-plan').files[0]; const plan = p ? await upload(p) : null;
+    const j = await api('/jobs', { method: 'POST', body: { name: f.elements.name.value, address: f.elements.address.value, description: f.elements.description.value, rooms, cover: initialPhotos[0] || null, initialPhotos, plan } });
+    closeAfterSave(); state = await api('/state'); navigate('#jobs/' + j.id); toast('Obra criada. Vamos acompanhar o primeiro passo.');
+  }); };
+}
+function entryModal(j) {
+  modal('Registrar avanço', 'Uma foto e um relato ajudam a contar o dia. Preencha apenas o que tiver.', `<form id="entry-form"><div class="form-body"><div class="form-row"><label>Ambiente <select name="roomId" id="entry-room">${j.rooms.map(r => `<option value="${r.id}" ${currentRoom?.id === r.id ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></label><label>Serviço <select name="service" id="entry-service"></select></label></div><div class="form-row"><label>Momento <select name="phase"><option value="end">Fim do dia</option><option value="start">Início do dia / referência</option><option value="update">Atualização durante o dia</option></select></label><label>Como está este serviço? <select name="progress">${Object.entries(progressLabels).map(([key, label]) => `<option value="${key}" ${key === 'ongoing' ? 'selected' : ''}>${label}${Object.hasOwn(stages, key) ? " · " + stages[key] + "%" : " · manter estimativa"}</option>`).join('')}</select></label></div><div class="camera-actions"><button type="button" class="button secondary" id="take-photo">${icon('camera')} Tirar foto</button><input id="entry-camera" type="file" accept="image/*" capture="environment" hidden><span>Foto geral e detalhe; repita o ângulo da referência quando possível.</span></div><label class="upload-label">${icon('camera')} Escolher fotos da galeria <input id="entry-photos" type="file" accept="image/*,.heic,.heif" multiple><span class="field-hint">Tire uma foto ou escolha da galeria · até 12 imagens</span><div id="entry-file-list"></div><span id="photo-preparation" class="field-hint" role="status"></span></label><div id="entry-reference" class="entry-reference"></div><div class="analysis-choice">${state.ai?.available ? '<label><input type="checkbox" id="request-analysis" checked> Conferir fotos com IA após salvar</label><p>As fotos selecionadas e o relato deste serviço serão enviados à OpenAI. O resultado é uma observação visual para revisão humana.</p>' : '<strong>Análise visual ainda não ativada</strong><p>Você pode salvar fotos normalmente. A conferência real precisa do servidor com a chave de IA configurada.</p>'}</div><label>O que aconteceu? <textarea name="note" rows="3" maxlength="5000" placeholder="O que avançou? Faltou algo? Tem alguma decisão para Thiago?"></textarea></label>${audioRecorderUI()}<div class="info-strip">${icon('file')} A data e o autor (${esc(user().name)}) são registrados automaticamente. A conclusão é um relato; a entrega da obra é confirmada pelo administrador.</div></div>${formFoot('Salvar registro')}</form>`);
+  const updateReference = () => {
+    const previous=[...j.entries].reverse().find(e=>e.roomId===document.querySelector('#entry-room').value&&e.service===document.querySelector('#entry-service').value&&e.photos.length);
+    document.querySelector('#entry-reference').innerHTML=previous?`<strong>Referência anterior · ${dateLabel(previous.at)}</strong><p>Mesmo ambiente e serviço. Tente repetir o ângulo para facilitar a comparação.</p><div class="photo-gallery">${previous.photos.slice(0,2).map(photo).join('')}</div>`:'<p>Primeiro registro com fotos deste serviço: inclua uma visão geral do ambiente.</p>';
+  };
+  const updateServices = () => { const room = j.rooms.find(r => r.id === document.querySelector('#entry-room').value); document.querySelector('#entry-service').innerHTML = room.services.map(s => `<option>${esc(s)}</option>`).join(''); updateReference(); };
+  updateServices(); document.querySelector('#entry-room').onchange = updateServices;
+  document.querySelector('#entry-service').onchange=updateReference;
+  photoCapture=SkytilePhotos.bind(document.querySelector('#entry-form'),{onError:message=>toast(message,true)}); bindRecorder(); attachCancel();
+  document.querySelector('#entry-form').onsubmit = e => { e.preventDefault(); const f = e.target; submit(f, async () => {
+    if (recording) throw new Error('Pare a gravação antes de salvar.');
+    if(photoCapture.preparing())throw new Error('Aguarde a preparação das fotos.');
+    const files = photoCapture.files(); const shouldAnalyze=!!f.querySelector('#request-analysis')?.checked; if (files.length > 12) throw new Error('Selecione até 12 fotos.');
+    if (!files.length && !f.elements.note.value.trim() && !recordedAudio) throw new Error('Adicione uma foto, um relato ou um áudio.');
+    const photos = []; for (const photo of files) photos.push(await upload(photo));
+    const audio = recordedAudio ? await upload(recordedAudio) : null;
+    const savedEntry = await api(`/jobs/${j.id}/entries`, { method: 'POST', body: { roomId: f.elements.roomId.value, service: f.elements.service.value, phase: f.elements.phase.value, progress: f.elements.progress.value, note: f.elements.note.value, photos, audio } });
+    closeAfterSave(); state = await api('/state'); route(); toast('Registro salvo no histórico.');
+    if(shouldAnalyze&&photos.length&&savedEntry.createdEntryId) void analyzeEntry(j.id,savedEntry.createdEntryId);
+  }); };
+}
+function audioRecorderUI() { return `<div class="audio-recorder"><div><strong>Prefere contar por áudio?</strong><p>Gravação salva localmente, sem transcrição automática.</p></div><button type="button" class="button secondary" id="record-audio">${icon('mic')} Gravar</button><div id="audio-preview"></div></div>`; }
+function bindRecorder() {
+  const b = document.querySelector('#record-audio');
+  b.onclick = async () => {
+    if (recording) { recording.recorder.stop(); recording.stream.getTracks().forEach(t => t.stop()); recording = null; b.innerHTML = icon('mic') + ' Gravar novamente'; b.classList.remove('recording'); return; }
+    if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) { toast('Gravação não disponível. Use um navegador compatível em localhost ou HTTPS.', true); return; }
+    b.disabled = true;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      if (!b.isConnected) { stream.getTracks().forEach(t => t.stop()); return; }
+      const supported = ['audio/webm', 'audio/mp4', 'audio/ogg'].find(t => MediaRecorder.isTypeSupported(t));
+      const recorder = new MediaRecorder(stream, supported ? { mimeType: supported } : {}); const chunks = [];
+      const session = { recorder, stream, cancelled: false }; recording = session;
+      recorder.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+      recorder.onstop = () => {
+        stream.getTracks().forEach(t => t.stop()); if (session.cancelled || !b.isConnected) return;
+        const type = recorder.mimeType.split(';')[0], extension = type.includes('mp4') ? 'mp4' : type.includes('ogg') ? 'ogg' : 'webm';
+        recordedAudio = new File(chunks, 'relato.' + extension, { type }); if (audioPreview) URL.revokeObjectURL(audioPreview); audioPreview = URL.createObjectURL(recordedAudio);
+        document.querySelector('#audio-preview').innerHTML = `<audio controls src="${audioPreview}"></audio><button type="button" class="button ghost" id="remove-audio">Remover áudio</button>`;
+        document.querySelector('#remove-audio').onclick = () => { URL.revokeObjectURL(audioPreview); audioPreview = null; recordedAudio = null; document.querySelector('#audio-preview').innerHTML = ''; };
+      };
+      recorder.start(); b.innerHTML = '<span class="record-dot"></span> Parar gravação'; b.classList.add('recording');
+    } catch { toast('Não foi possível acessar o microfone. Verifique a permissão do navegador.', true); }
+    finally { b.disabled = false; }
+  };
+}
+function assignmentModal(j) {
+  modal('Equipe do dia', 'Anote a distribuição. Isso não restringe o acesso às obras.', `<form id="assignment-form"><div class="form-body"><div class="mini-job-title">${esc(j.name)}</div><label>Dia <input type="date" name="date" id="assignment-date" value="${state.today}" required></label><div id="assignment-people"></div><p class="field-hint" id="assignment-by"></p></div>${formFoot('Salvar equipe')}</form>`);
+  const update = () => { const date = document.querySelector('#assignment-date').value; const a = j.assignments.find(a => a.date === date); document.querySelector('#assignment-people').innerHTML = state.users.filter(u => u.active !== false || a?.userIds.includes(u.id)).map(u => `<label class="person-choice"><input type="checkbox" name="userIds" value="${u.id}" ${a?.userIds.includes(u.id) ? 'checked' : ''}><span class="avatar small">${initials(u.name)}</span><span><strong>${esc(u.name)}</strong><small>${esc(u.specialty)}</small></span></label>`).join(''); document.querySelector('#assignment-by').textContent = a ? `Última edição por ${a.by} · ${dateLabel(a.at, true)}` : 'Ainda sem equipe registrada neste dia.'; };
+  update(); document.querySelector('#assignment-date').onchange = update; attachCancel();
+  document.querySelector('#assignment-form').onsubmit = e => { e.preventDefault(); const f = e.target; submit(f, async () => { await api(`/jobs/${j.id}/assignments`, { method: 'POST', body: { date: f.elements.date.value, userIds: [...f.querySelectorAll('[name=userIds]:checked')].map(i => i.value) } }); closeAfterSave(); await refresh(); toast('Equipe registrada para o dia selecionado.'); }); };
+}
+function personModal(person = null) {
+  const editing = !!person;
+  modal(editing ? 'Editar profissional' : 'Cadastrar profissional', 'Nome e função são suficientes para começar. O ID é gerado automaticamente.', `<form id="person-form"><div class="form-body">${person ? `<div class="mini-job-title">${esc(person.code)} · ${person.role === 'admin' ? 'Acesso de administrador' : 'Acesso de colaborador'}</div>` : `<div class="info-strip">O novo cadastro terá acesso de colaborador às obras abertas.${authenticatedMode ? ' Depois, use Acesso na equipe para definir uma senha.' : ''}</div>`}<label>Nome <input name="name" required maxlength="120" value="${esc(person?.name || '')}" placeholder="Nome do profissional"></label><label>Função profissional <select name="position">${Object.entries(positions).map(([key, label]) => `<option value="${key}" ${(person?.position || 'installer') === key ? 'selected' : ''}>${esc(label)}</option>`).join('')}</select></label>${moneyField('dailyRateCents','Diária de referência',person ? state.finance.rates[person.id] : null)}<details class="skills-details"><summary>Etapas que realiza <span class="optional">opcional</span></summary><p class="field-hint">Marque somente habilidades conhecidas. Ser instalador não significa fazer todas as etapas.</p><label class="all-skills-choice"><input type="checkbox" id="all-skills" ${person?.skills?.length === professionalSkills.length ? 'checked' : ''}> Realiza todas as etapas abaixo</label><div class="checkbox-grid">${professionalSkills.map(s => `<label><input type="checkbox" name="skills" value="${esc(s)}" ${person?.skills?.includes(s) ? 'checked' : ''}>${esc(s)}</label>`).join('')}</div></details></div>${formFoot(editing ? 'Salvar profissional' : 'Cadastrar')}</form>`);
+  const all = document.querySelector('#all-skills');
+  all.onchange = () => modalRoot.querySelectorAll('[name=skills]').forEach(i => i.checked = all.checked);
+  modalRoot.querySelectorAll('[name=skills]').forEach(i => i.onchange = () => all.checked = [...modalRoot.querySelectorAll('[name=skills]')].every(i => i.checked));
+  attachCancel();
+  document.querySelector('#person-form').onsubmit = e => { e.preventDefault(); const f = e.target; submit(f, async () => {
+    await api(editing ? '/users/' + person.id : '/users', { method: editing ? 'PATCH' : 'POST', body: { name: f.elements.name.value, position: f.elements.position.value, dailyRateCents: SkytileFinance.parseMoney(f.elements.dailyRateCents.value), skills: [...f.querySelectorAll('[name=skills]:checked')].map(i => i.value) } });
+    state = await api('/state'); route(); closeAfterSave(); toast(editing ? 'Cadastro atualizado. ID e histórico preservados.' : 'Profissional cadastrado com ID automático.');
+  }); };
+}
+function statusModal(j, status) {
+  const reopen = j.status === 'delivered';
+  modal(reopen ? 'Reabrir para um ajuste' : status === 'delivered' ? 'Confirmar entrega da obra' : 'Iniciar execução', reopen ? 'O histórico original permanece. O motivo ficará registrado.' : status === 'delivered' ? 'A obra sai da lista de abertas e fica em Finalizadas.' : 'A obra continua visível para toda a equipe.', `<form id="status-form"><div class="form-body"><div class="mini-job-title">${esc(j.name)}</div>${reopen ? '<label>Qual ajuste é necessário? <textarea name="reason" required maxlength="1000" rows="3" placeholder="Ex.: revisar o rejunte solicitado pelo cliente."></textarea></label>' : '<p class="field-hint">Esta decisão fica no histórico com data e responsável.</p>'}</div>${formFoot(reopen ? 'Reabrir obra' : status === 'delivered' ? 'Confirmar entrega' : 'Iniciar')}</form>`);
+  attachCancel(); document.querySelector('#status-form').onsubmit = e => { e.preventDefault(); submit(e.target, async () => { await api(`/jobs/${j.id}/status`, { method: 'POST', body: { status, reason: e.target.elements.reason?.value } }); closeAfterSave(); state = await api('/state'); route(); toast(reopen ? 'Obra reaberta. O histórico foi preservado.' : status === 'delivered' ? 'Obra entregue e arquivada.' : 'Execução iniciada.'); }); };
+}
+function roomModal(j) {
+  modal('Adicionar ambiente', 'Um local claro para organizar fotos e serviços.', `<form id="room-form"><div class="form-body"><label>Nome do ambiente <input name="name" required maxlength="120" placeholder="Ex.: Banheiro 03"></label><span class="field-title">Serviços previstos</span>${servicesChecks('services')}</div>${formFoot('Adicionar')}</form>`);
+  attachCancel(); document.querySelector('#room-form').onsubmit = e => { e.preventDefault(); const f = e.target; submit(f, async () => { await api(`/jobs/${j.id}/rooms`, { method: 'POST', body: { name: f.elements.name.value, services: [...f.querySelectorAll('[name=services]:checked')].map(i => i.value) } }); closeAfterSave(); state = await api('/state'); route(); toast('Ambiente adicionado.'); }); };
+}
+function planModal(j) {
+  modal('Anexar planta', 'Imagem para marcar áreas; PDF para consulta.', `<form id="plan-form"><div class="form-body"><label class="upload-label">${icon('file')} Planta da obra <input type="file" id="plan-file" accept="image/jpeg,image/png,image/webp,application/pdf" required><div id="plan-files"></div></label></div>${formFoot('Salvar planta')}</form>`);
+  uploadPreview(document.querySelector('#plan-file'), document.querySelector('#plan-files')); attachCancel(); document.querySelector('#plan-form').onsubmit = e => { e.preventDefault(); submit(e.target, async () => { const p = document.querySelector('#plan-file').files[0]; if (!p) throw new Error('Selecione a planta.'); const plan = await upload(p); await api(`/jobs/${j.id}/plan`, { method: 'POST', body: { plan } }); closeAfterSave(); state = await api('/state'); route(); toast('Planta anexada.'); }); };
+}
+function mapModal(j) {
+  modal('Marcar um ambiente na planta', 'Selecione o ambiente e arraste sobre a imagem para desenhar sua área.', `<form id="map-form"><div class="form-body"><label>Ambiente <select name="roomId">${j.rooms.map(r => `<option value="${r.id}">${esc(r.name)}</option>`).join('')}</select></label><div class="map-editor" id="map-editor"><img src="${esc(j.plan.url)}" alt="Planta para marcar um ambiente" draggable="false"><div id="map-selection" hidden></div></div><p class="field-hint">A marcação substitui a área anterior deste ambiente. No celular, arraste com o dedo.</p></div>${formFoot('Salvar área')}</form>`, true);
+  let start, region; const editor = document.querySelector('#map-editor'), selection = document.querySelector('#map-selection');
+  mapController = new AbortController();
+  const position = e => { const rect = editor.getBoundingClientRect(); return [Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width)), Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height))]; };
+  editor.onpointerdown = e => { e.preventDefault(); start = position(e); region = null; selection.hidden = true; editor.setPointerCapture(e.pointerId); };
+  editor.onpointermove = e => { if (!start) return; const p = position(e); region = [Math.min(start[0], p[0]), Math.min(start[1], p[1]), Math.abs(start[0] - p[0]), Math.abs(start[1] - p[1])]; selection.hidden = false; Object.assign(selection.style, { left: region[0]*100+'%', top: region[1]*100+'%', width: region[2]*100+'%', height: region[3]*100+'%' }); };
+  editor.onpointerup = () => { start = null; }; editor.onpointercancel = () => { start = null; };
+  attachCancel(); document.querySelector('#map-form').onsubmit = e => { e.preventDefault(); submit(e.target, async () => { if (!region || region[2] < .01 || region[3] < .01) throw new Error('Desenhe uma área na planta antes de salvar.'); await api(`/jobs/${j.id}/regions`, { method: 'POST', body: { roomId: e.target.elements.roomId.value, region } }); closeAfterSave(); state = await api('/state'); route(); toast('Área associada ao ambiente.'); }); };
+}
+function chatAudioModal() {
+  modal('Mensagem de áudio', 'O áudio fica no histórico. Para obter uma resposta, digite a pergunta enquanto a transcrição não estiver conectada.', `<form id="chat-audio-form"><div class="form-body">${audioRecorderUI()}</div>${formFoot('Salvar áudio')}</form>`); bindRecorder(); attachCancel();
+  document.querySelector('#chat-audio-form').onsubmit = e => { e.preventDefault(); submit(e.target, async () => { if (recording) throw new Error('Pare a gravação antes de salvar.'); if (!recordedAudio) throw new Error('Grave uma mensagem primeiro.'); const audio = await upload(recordedAudio); await api('/chat/audio', { method: 'POST', body: { audio } }); closeAfterSave(); await refresh(); const t = document.querySelector('#chat-thread'); t.scrollTop = t.scrollHeight; toast('Áudio salvo localmente.'); }); };
+}
+const restoreLocation = () => { const path = location.hash || '#jobs'; if (path !== currentRoute) route(path); };
+window.addEventListener('hashchange', restoreLocation);
+window.addEventListener('popstate', restoreLocation);
+async function initialize() {
+  try {
+    if (!window.SkytileLocal) {
+      const session = await api('/auth/session'); authenticatedMode = session.enabled;
+      if (authenticatedMode && !session.userId) { renderLogin(); return; }
+      if (authenticatedMode) profile = session.userId;
+    }
+    try { state = await api('/state'); } catch (e) {
+      if (!/perfil|usu.rio/i.test(e.message)) throw e;
+      profile = 'thiago'; profileStorage.set(profile); state = await api('/state');
+    }
+    if (!state.users.some(u => u.id === profile && u.active !== false)) { profile = 'thiago'; profileStorage.set(profile); state = await api('/state'); }
+    route();
+  } catch (e) {
+    if (authenticatedMode && e.status === 401) { renderLogin(); return; }
+    const previewStatus = document.querySelector('#preview-status');
+    if (previewStatus) { previewStatus.dataset.mode = 'error'; previewStatus.textContent = 'Não foi possível ativar a prévia: ' + e.message; }
+    app.innerHTML = `<div class="boot"><h1>Não foi possível abrir a Skytile.</h1><p>${esc(e.message)}</p><button class="button primary" id="retry-start">Tentar novamente</button></div>`;
+    document.querySelector('#retry-start').onclick = () => location.reload();
+  }
+}
+initialize();
+
+function renderLogin() {
+  // Remove private content and active recording when a session ends.
+  if (recording) { recording.cancelled=true; recording.recorder.stop(); recording.stream.getTracks().forEach(t=>t.stop()); recording=null; }
+  photoCapture?.dispose(); photoCapture=null; modalRoot.innerHTML=''; document.body.classList.remove('modal-open');
+  app.innerHTML=`<main class="login-shell"><section class="login-card"><div class="brand-word">SKY<span class="brand-star">✦</span>TILE</div><div class="eyebrow">SEU ESPAÇO DE TRABALHO</div><h1>Entre para acompanhar as obras.</h1><p>Use o ID e a senha recebidos do administrador.</p><form id="login-form"><label>ID de acesso <input name="login" required maxlength="120" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="Ex.: thiago ou SK-001"></label><label>Senha <input name="password" type="password" required maxlength="128" autocomplete="current-password"></label><p class="form-error" hidden role="alert"></p><button class="button primary full" type="submit">Entrar</button></form><p class="field-hint">Esqueceu a senha? Peça a Thiago ou Flavio para definir uma nova.</p></section></main>`;
+  const form=document.querySelector('#login-form');
+  form.onsubmit=e=>{e.preventDefault();submit(form,async()=>{
+    const result=await api('/auth/login',{method:'POST',body:{login:form.elements.login.value,password:form.elements.password.value}});
+    form.elements.password.value='';profile=result.userId;state=await api('/state');navigate('#jobs');
+  });};
+}
+
+function accessModal(person) {
+  modal('Acesso de '+person.name,'Defina uma senha e entregue diretamente à pessoa.',`<form id="access-form"><div class="form-body"><p>ID para entrar: <strong>${esc(person.code)}</strong></p><label>Nova senha <input name="password" type="password" required minlength="12" maxlength="128" autocomplete="new-password"></label><p class="field-hint">Use pelo menos 12 caracteres. Definir uma senha encerra os acessos anteriores dessa pessoa.</p></div>${formFoot('Definir senha')}</form>`);
+  attachCancel();const form=document.querySelector('#access-form');
+  form.onsubmit=e=>{e.preventDefault();submit(form,async()=>{
+    await api('/auth/access',{method:'POST',body:{userId:person.id,password:form.elements.password.value}});
+    form.elements.password.value='';closeAfterSave();
+    if(person.id===profile){state=null;renderLogin();}else toast('Senha definida. Entregue o ID e a senha à pessoa.');
+  });};
+}
+
+function financeCard(j) {
+  if (!isAdmin()) return '';
+  const s = SkytileFinance.summary(j, state.today);
+  const label = { unknown: 'Orçamento não informado', exceeded: 'Orçamento excedido', risk: 'Previsão acima do orçamento', review: 'Revisar previsão', within: 'Gasto confirmado dentro do orçamento' }[s.budgetStatus];
+  return `<div class="finance-card-mini"><span>Gasto confirmado <strong>${SkytileFinance.money(s.confirmed)}</strong></span><small class="cost-${s.budgetStatus}">${label}${s.pendingCount ? ` · ${s.pendingCount} para conferir` : ''}</small></div>`;
+}
+function financePanel(j) {
+  const F = SkytileFinance;
+  if (!isAdmin()) {
+    const mine = j.myExpenses || [];
+    return `<section class="section finance-panel"><div class="section-heading"><div><h2>Gastos que você enviou</h2><p>Envie um gasto desta obra para conferência do administrador.</p></div>${j.status !== 'delivered' ? '<button class="button secondary" data-action="new-expense">Registrar gasto</button>' : ''}</div>${mine.length ? mine.map(e => expenseRow(e, false)).join('') : '<p class="field-hint">Nenhum gasto enviado por este perfil.</p>'}</section>`;
+  }
+  const s = F.summary(j, state.today), f = j.finance;
+  const status = { unknown: 'Defina um orçamento para comparar os custos.', exceeded: 'O gasto confirmado já excedeu o orçamento.', risk: 'A previsão de custo final excede o orçamento.', review: 'Novos gastos chegaram. Revise a estimativa do que falta gastar.', within: 'O gasto confirmado está dentro do orçamento.' }[s.budgetStatus];
+  const schedule = { unknown: 'Prazo não informado', unestimated: 'Informe a previsão de término', late: 'Data combinada ultrapassada', risk: 'Risco de atraso', ahead: 'Previsão de entrega antecipada', on_time: 'Previsão dentro do prazo', delivered_late: 'Entregue após a data combinada', delivered_on_time: 'Entregue dentro do prazo' }[s.schedule];
+  const metric = (title, value, caption = '') => `<div class="cost-metric"><span>${title}</span><strong>${F.money(value)}</strong><small>${caption}</small></div>`;
+  const history = f.history.slice(-12).reverse();
+  return `<section class="section finance-panel" id="finance-panel"><div class="section-heading"><div><h2>Custos e prazo da obra</h2><p>Valores em dólares · acompanhamento disponível aos administradores.</p></div><button class="button secondary" data-action="finance-settings">Valores e prazo</button></div><div class="cost-status cost-${s.budgetStatus}">${icon(s.budgetStatus === 'exceeded' || s.budgetStatus === 'risk' ? 'alert' : 'file')}${status}</div>
+    <div class="cost-metrics">${metric('Valor contratado', s.contractCents, 'Valor combinado; não indica recebimento.')}${metric('Orçamento de custos', s.budgetCents)}${metric('Gasto confirmado', s.confirmed, `Diárias: ${F.money(s.labor)} · outros: ${F.money(s.approved)}`)}${metric('Aguardando conferência', s.pending, `${s.pendingCount} gasto(s) enviado(s)`)}${metric('Estimativa adicional', s.remainingCents, 'Além dos gastos já registrados.')}${metric('Custo final previsto', s.projected, s.stale ? 'Revise a estimativa após os novos gastos.' : 'Inclui os gastos aguardando conferência.')}</div>
+    <div class="cost-footnote"><span>Resultado estimado antes de despesas gerais: <strong>${F.money(s.projectedResult)}</strong>${s.stale ? ' · previsão a revisar' : ''}</span><span>Orçamento menos gasto confirmado: <strong>${s.budgetCents === null ? 'Não informado' : F.money(s.budgetCents - s.confirmed)}</strong></span></div>
+    <div class="schedule-strip"><div><strong>${schedule}</strong><p>Entrega combinada: ${s.deadline ? dateLabel(s.deadline) : 'não informada'} · previsão de término: ${s.expectedFinish ? dateLabel(s.expectedFinish) : 'não informada'}</p></div><small>Previsão informada pelo administrador; o percentual não calcula prazo automaticamente.</small></div>
+    ${s.unconfirmedDays ? `<p class="cost-warning">${s.unconfirmedDays} dia(s) com escala ou relatos até hoje ainda sem diárias confirmadas. O gasto registrado pode estar incompleto.</p>` : ''}<p class="field-hint">Valores ausentes não são tratados como zero. Gastos confirmados não indicam pagamento; recebimentos e despesas gerais da companhia não são controlados aqui.</p>
+    <div class="finance-actions"><button class="button primary" data-action="new-expense">Registrar gasto</button><button class="button secondary" data-action="labor">Confirmar diárias</button></div>
+    <details class="finance-details"><summary>Gastos e comprovantes · ${f.expenses.length}</summary><div>${f.expenses.length ? [...f.expenses].reverse().map(e => expenseRow(e, true)).join('') : '<p class="field-hint">Ainda sem gastos registrados.</p>'}</div></details>
+    <details class="finance-details"><summary>Diárias confirmadas · ${f.labor.length} dia(s)</summary>${[...f.labor].sort((a,b) => b.date.localeCompare(a.date)).map(d => `<div class="expense-row"><div><strong>${dateLabel(d.date)} · ${d.people.map(p => esc(p.name) + (p.fraction === .5 ? ' (meia diária)' : '')).join(', ') || 'Nenhum profissional confirmado'}</strong><p>Confirmado por ${esc(d.confirmedBy)}. ${d.people.map(p => esc(p.name) + ': ' + F.money(p.amountCents)).join(' · ')}</p></div><strong>${F.money(d.people.reduce((n,p) => n+p.amountCents,0))}</strong></div>`).join('') || '<p class="field-hint">A escala, sozinha, não gera custo.</p>'}</details>
+    <details class="finance-details"><summary>Histórico de alterações · ${f.history.length}</summary>${history.map(h => `<div class="expense-row"><div><strong>${esc(h.action)}</strong><p>${esc(h.author)} · ${dateLabel(h.at, true)}</p><details><summary>Ver registro</summary><pre>${esc('Antes: ' + financeAuditValue(h.before) + '\nDepois: ' + financeAuditValue(h.after))}</pre></details></div></div>`).join('') || '<p class="field-hint">As alterações serão preservadas aqui.</p>'}${f.history.length > 12 ? '<p class="field-hint">Exibindo as 12 últimas alterações; o histórico completo permanece salvo.</p>' : ''}</details></section>`;
+}
+function expenseRow(e, admin) {
+  const label = { pending: 'Aguardando conferência', approved: 'Confirmado', rejected: 'Recusado', voided: 'Anulado' }[e.status];
+  return `<div class="expense-row"><div><strong>${SkytileFinance.categories[e.category]} · ${dateLabel(e.date)}</strong><p>${esc(e.note || 'Sem descrição')} · ${esc(e.author)}</p><span class="progress-badge expense-${e.status}">${label}</span>${e.reason ? `<p>Motivo: ${esc(e.reason)}</p>` : ''}${e.receipt ? `<a class="file-link" href="${esc(e.receipt.url)}" target="_blank" rel="noopener">${icon('file')} Abrir comprovante</a>` : ''}</div><div class="expense-side"><strong>${SkytileFinance.money(e.amountCents)}</strong>${admin && e.status === 'pending' ? `<button class="button ghost" data-action="expense-review" data-expense="${e.id}" data-decision="approved">Confirmar gasto</button><button class="button ghost" data-action="expense-review" data-expense="${e.id}" data-decision="rejected">Recusar</button>` : admin && e.status === 'approved' ? `<button class="button ghost" data-action="expense-review" data-expense="${e.id}" data-decision="voided">Anular</button>` : ''}</div></div>`;
+}
+const moneyValue = cents => cents === null || cents === undefined ? '' : (cents / 100).toFixed(2);
+const moneyField = (name, label, value = null, required = false) => `<label>${label} <span class="optional">${required ? 'US$' : 'US$ · opcional'}</span><input name="${name}" inputmode="decimal" placeholder="0,00" value="${moneyValue(value)}" ${required ? 'required' : ''}><span class="field-hint">Ex.: 250,00 · sem separador de milhares</span></label>`;
+function financeSettingsModal(j) {
+  const s = j.finance.settings;
+  modal('Valores e prazo da obra', 'Informe somente o que já foi combinado ou estimado.', `<form id="finance-settings-form"><div class="form-body"><div class="form-row">${moneyField('contractCents','Valor contratado',s.contractCents)}${moneyField('budgetCents','Orçamento de custos',s.budgetCents)}</div>${moneyField('remainingCents','Quanto ainda falta gastar além do já registrado?',s.remainingCents)}<p class="field-hint">A estimativa adicional não deve repetir gastos confirmados nem os enviados para conferência. Zero significa que você estima não haver mais gastos. Deixe em branco se ainda não souber.</p><div class="form-row"><label>Entrega combinada <input type="date" name="deadline" value="${s.deadline || ''}"></label><label>Previsão de término <input type="date" name="expectedFinish" value="${s.expectedFinish || ''}"></label></div></div>${formFoot('Salvar valores e prazo')}</form>`);
+  attachCancel(); document.querySelector('#finance-settings-form').onsubmit = e => { e.preventDefault(); const f = e.target; submit(f, async () => {
+    const body = Object.fromEntries(['contractCents','budgetCents','remainingCents'].map(k => [k, SkytileFinance.parseMoney(f.elements[k].value)]));
+    body.deadline = f.elements.deadline.value || null; body.expectedFinish = f.elements.expectedFinish.value || null;
+    await api(`/jobs/${j.id}/finance`, { method: 'POST', body }); await refresh(); closeAfterSave(); toast('Referências de custo e prazo salvas.');
+  }); };
+}
+function expenseModal(j) {
+  modal('Registrar gasto da obra', isAdmin() ? 'O lançamento será confirmado com seu perfil de administrador.' : 'Thiago ou Flavio vão conferir este lançamento.', `<form id="expense-form"><div class="form-body"><div class="mini-job-title">${esc(j.name)}</div><div class="form-row">${moneyField('amountCents','Valor do gasto',null,true)}<label>Categoria <select name="category">${Object.entries(SkytileFinance.categories).map(([key,label]) => `<option value="${key}">${label}</option>`).join('')}</select></label></div><label>Data do gasto <input type="date" name="date" value="${state.today}" max="${state.today}" required></label><label>Descrição <span class="optional">opcional</span><input name="note" maxlength="1000" placeholder="Ex.: estacionamento da viagem de hoje"></label><label class="upload-label">Comprovante <span class="optional">opcional</span><input type="file" id="expense-receipt" accept="image/*,.heic,.heif"><div id="expense-files"></div></label><p class="field-hint">Registre cada gasto uma vez. Estacionamento e pedágio são por ocorrência, não por pessoa.</p></div>${formFoot(isAdmin() ? 'Salvar gasto' : 'Enviar gasto')}</form>`);
+  uploadPreview(document.querySelector('#expense-receipt'),document.querySelector('#expense-files')); attachCancel();
+  document.querySelector('#expense-form').onsubmit = e => { e.preventDefault(); const f = e.target; submit(f, async () => {
+    const amountCents = SkytileFinance.parseMoney(f.elements.amountCents.value); if (!amountCents) throw new Error('Informe um gasto maior que zero.');
+    const file = document.querySelector('#expense-receipt').files[0]; const receipt = file ? await upload(file) : null;
+    await api(`/jobs/${j.id}/expenses`, { method: 'POST', body: { amountCents, category:f.elements.category.value, date:f.elements.date.value, note:f.elements.note.value, receipt } });
+    await refresh(); closeAfterSave(); toast(isAdmin() ? 'Gasto confirmado e registrado.' : 'Gasto enviado para conferência.');
+  }); };
+}
+function expenseReviewModal(j, expenseId, status) {
+  const e = j.finance.expenses.find(e => e.id === expenseId);
+  const label = { approved:'Confirmar gasto', rejected:'Recusar gasto', voided:'Anular gasto' }[status];
+  modal(label,'O lançamento e a decisão permanecerão no histórico.',`<form id="expense-review-form"><div class="form-body"><div class="mini-job-title">${SkytileFinance.money(e.amountCents)} · ${esc(e.note || SkytileFinance.categories[e.category])}</div>${status === 'approved' ? '<p>Confirme que este gasto pertence à obra e está correto.</p>' : '<label>Motivo <textarea name="reason" required maxlength="1000" rows="2"></textarea></label>'}</div>${formFoot(label)}</form>`); attachCancel();
+  document.querySelector('#expense-review-form').onsubmit = ev => { ev.preventDefault(); submit(ev.target,async()=>{
+    await api(`/jobs/${j.id}/expenses/${expenseId}/review`,{method:'POST',body:{status,reason:ev.target.elements.reason?.value || ''}}); await refresh(); closeAfterSave(); toast('Decisão registrada.');
+  }); };
+}
+function laborModal(j) {
+  modal('Confirmar diárias da obra','Confirme quem trabalhou e o custo daquele dia. A escala é apenas uma referência.',`<form id="labor-form"><div class="form-body"><label>Dia trabalhado <input type="date" id="labor-date" name="date" value="${state.today}" max="${state.today}" required></label><div id="labor-people"></div><p class="field-hint">Se o profissional dividir o dia entre duas obras, use meia diária em cada uma. Alterar a diária de referência depois não muda os dias já confirmados.</p><p class="field-hint">Salvar sem profissionais confirma que não houve diárias nesta obra no dia selecionado.</p></div>${formFoot('Salvar diárias')}</form>`,true);
+  const update = () => {
+    const date = document.querySelector('#labor-date').value;
+    const record = j.finance.labor.find(d=>d.date===date); const a = j.assignments.find(a=>a.date===date);
+    document.querySelector('#labor-people').innerHTML = state.users.filter(u=>u.active!==false || record?.people.some(p=>p.userId===u.id)).map(u=>{
+      const p = record?.people.find(p=>p.userId===u.id); const selected = record ? !!p : a?.userIds.includes(u.id);
+      return `<div class="labor-person" data-user="${u.id}"><label class="labor-check"><input type="checkbox" class="labor-selected" ${selected?'checked':''}>${esc(u.name)}</label><label>Diária integral (US$)<input class="labor-rate" inputmode="decimal" value="${moneyValue(p?.rateCents ?? state.finance.rates[u.id])}" placeholder="Não informada"></label><label>Fração trabalhada<select class="labor-fraction"><option value="1">Uma diária</option><option value="0.5" ${p?.fraction===.5?'selected':''}>Meia diária</option></select></label></div>`;
+    }).join('');
+  };
+  update(); document.querySelector('#labor-date').onchange=update; attachCancel();
+  document.querySelector('#labor-form').onsubmit=e=>{e.preventDefault();submit(e.target,async()=>{
+    const people=[...document.querySelectorAll('.labor-person')].filter(r=>r.querySelector('.labor-selected').checked).map(r=>{
+      const rateCents=SkytileFinance.parseMoney(r.querySelector('.labor-rate').value); if(rateCents===null)throw new Error('Informe a diária de '+state.users.find(u=>u.id===r.dataset.user).name+'.');
+      return {userId:r.dataset.user,rateCents,fraction:Number(r.querySelector('.labor-fraction').value)};
+    });
+    await api(`/jobs/${j.id}/labor`,{method:'POST',body:{date:e.target.elements.date.value,people}}); await refresh();closeAfterSave();toast('Diárias confirmadas e custo atualizado.');
+  });};
+}
+
+function financeAuditValue(value) {
+  if (!value) return 'Sem registro';
+  if (value.people) return value.date + ' · ' + (value.people.map(p => p.name + ': ' + SkytileFinance.money(p.amountCents) + (p.fraction === .5 ? ' (meia diária)' : '')).join('; ') || 'Nenhum profissional confirmado');
+  if (Object.hasOwn(value, 'amountCents')) return SkytileFinance.money(value.amountCents) + ' · ' + SkytileFinance.categories[value.category] + ' · ' + ({ pending:'aguardando conferência', approved:'confirmado', rejected:'recusado', voided:'anulado' }[value.status]) + (value.reason ? ' · ' + value.reason : '');
+  return 'Contratado: ' + SkytileFinance.money(value.contractCents) + '; orçamento: ' + SkytileFinance.money(value.budgetCents) + '; restante estimado: ' + SkytileFinance.money(value.remainingCents) + '; entrega combinada: ' + (value.deadline || 'não informada') + '; previsão de término: ' + (value.expectedFinish || 'não informada');
+}
+
+const analysisLabels = { compatible:'Compatível com as fotos disponíveis', possible_difference:'Possível divergência: revisar', insufficient_evidence:'Fotos insuficientes para conferir' };
+const analyzingEntries = new Set();
+function needsVisualReview(e) { return e?.analysis?.status==='complete'&&e.analysis.verdict!=='compatible'&&(!e.analysis.review||e.analysis.review.decision==='needs_check'); }
+function analysisPanel(j,e) {
+  const a=e.analysis;
+  if(!e.photos.length && !a)return '';
+  const canAnalyze=isAdmin() || e.authorId===profile;
+  if(analyzingEntries.has(e.id)||a?.status==='running')return `<div class="analysis-card"><strong>Comparando as fotos com o relato…</strong><p>Seu registro já está salvo. Você pode continuar usando a aplicação.</p><button class="button ghost" data-action="analysis-refresh">Atualizar análise</button></div>`;
+  if(a?.status==='complete') {
+    const stage=a.visibleStage==='unclear'?'Não identificável':progressLabels[a.visibleStage];
+    const bullets=(label,items)=>items?.length?`<div class="analysis-list"><strong>${label}</strong><ul>${items.map(v=>`<li>${esc(v)}</li>`).join('')}</ul></div>`:'';
+    return `<section class="analysis-card verdict-${a.verdict}"><div class="analysis-heading">${icon('spark')}<strong>${analysisLabels[a.verdict]}</strong><span>Confiança ${esc({low:'baixa',medium:'moderada',high:'alta'}[a.confidence])}</span></div><p>${esc(a.summary)}</p><div class="analysis-comparison"><span>Relatado: <strong>${progressLabels[e.progress]}</strong></span><span>Visível: <strong>${esc(stage)}</strong></span></div>${bullets('Observações visuais',a.observations)}${bullets('Limitações',a.limitations)}${bullets('Fotos que ajudariam',a.requestedPhotos)}<details><summary>Fotos usadas na análise</summary><p>Registro atual</p><div class="photo-gallery">${a.currentPhotos.map(url=>photo({url,name:'Foto atual usada na análise'})).join('')}</div>${a.referencePhotos.length?`<p>Referência do mesmo ambiente e serviço</p><div class="photo-gallery">${a.referencePhotos.map(url=>photo({url,name:'Foto anterior de referência'})).join('')}</div>`:'<p>Sem foto anterior comparável neste serviço.</p>'}${a.photosOmitted?`<p>${a.photosOmitted} foto(s) do registro não foram enviadas nesta análise.</p>`:''}</details><p class="analysis-note">Análise visual de IA · não mede a obra inteira nem confirma qualidade técnica. O avanço informado permanece ${progressLabels[e.progress].toLowerCase()}.</p>${a.review?`<div class="analysis-review"><strong>Revisão de ${esc(a.review.by)}</strong><p>${esc({agree:'Concorda com a observação visual',needs_check:'Vai conferir no local',disagree:'Discorda da análise'}[a.review.decision])}${a.review.note?' · '+esc(a.review.note):''}</p></div>`:''}${isAdmin()?`<button class="button secondary" data-action="review-analysis" data-entry-id="${e.id}">${a.review?'Atualizar revisão':'Registrar revisão'}</button>`:'<p class="field-hint">Thiago ou Flavio podem registrar a conferência desta análise.</p>'}</section>`;
+  }
+  return `<div class="analysis-card"><strong>${a?.status==='error'?'Análise não concluída':'Conferência por fotos'}</strong><p>${esc(a?.message || (state.ai?.available?'Compare estas fotos com o avanço informado. A IA pode pedir mais imagens.':window.SkytileLocal?'Esta prévia salva fotos no navegador. A análise real precisa da versão com servidor e IA ativada.':'As fotos estão salvas. A análise real ainda não está ativada no servidor.'))}</p>${state.ai?.available&&canAnalyze?`<button class="button secondary" data-action="analyze-entry" data-entry-id="${e.id}">${icon('spark')}${a?.status==='error'?'Tentar análise novamente':'Analisar fotos'}</button>`:''}</div>`;
+}
+async function analyzeEntry(jobId,entryId) {
+  if(analyzingEntries.has(entryId))return;analyzingEntries.add(entryId);if(view==='jobs'&&currentJob?.id===jobId&&!modalRoot.children.length)render();
+  try{await api(`/jobs/${jobId}/entries/${entryId}/analyze`,{method:'POST',body:{},timeout:75000});toast('Conferência das fotos atualizada.');}
+  catch(e){toast(e.message,true);}
+  finally{analyzingEntries.delete(entryId);try{state=await api('/state');if(view==='jobs'&&currentJob?.id===jobId&&!modalRoot.children.length)route();}catch(e){toast(e.message,true);}}
+}
+function analysisReviewModal(j,entryId) {
+  const a=j.entries.find(e=>e.id===entryId).analysis;
+  modal('Revisar análise das fotos','Registre sua decisão. Para corrigir o avanço, envie um novo registro do serviço.',`<form id="analysis-review-form"><div class="form-body"><p>${esc(a.summary)}</p><label>Sua avaliação <select name="decision"><option value="agree">Concordo com a observação visual</option><option value="needs_check">Preciso conferir no local</option><option value="disagree">Discordo da análise</option></select></label><label>Observação <span class="optional">opcional</span><textarea name="note" maxlength="1500" rows="3"></textarea></label></div>${formFoot('Salvar revisão')}</form>`);
+  attachCancel();document.querySelector('#analysis-review-form').onsubmit=e=>{e.preventDefault();const f=e.target;submit(f,async()=>{await api(`/jobs/${j.id}/entries/${entryId}/analysis-review`,{method:'POST',body:{decision:f.elements.decision.value,note:f.elements.note.value}});await refresh();closeAfterSave();toast('Revisão registrada. O avanço relatado foi preservado.');});};
+}
+</script></body></html>

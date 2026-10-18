@@ -1,0 +1,25 @@
+{
+  "services": [
+    {
+      "type": "web",
+      "name": "skytile-demo",
+      "runtime": "static",
+      "repo": "https://github.com/ZBrunoMarx/USA",
+      "branch": "skytile-demo",
+      "buildCommand": "test -s index.html",
+      "staticPublishPath": ".",
+      "headers": [
+        {
+          "path": "/*",
+          "name": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "path": "/*",
+          "name": "Referrer-Policy",
+          "value": "same-origin"
+        }
+      ]
+    }
+  ]
+}
