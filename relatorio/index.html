@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#112931">
+  <title>Relatório do dia · Field Report</title>
+  <link rel="stylesheet" href="./report.css">
+  <script defer src="./report.js"></script>
+</head>
+<body>
+  <header class="top"><strong>FIELD REPORT</strong><span>RELATÓRIO DO DIA · v1</span></header>
+  <main>
+    <section class="intro">
+      <span class="eyebrow">DO PRIMEIRO REGISTRO À ENTREGA</span>
+      <h1>Seu dia de trabalho.<br>Pronto para mostrar.</h1>
+      <p>Fotografe o início, registre o resultado e monte um vídeo curto para compartilhar. Pode ser um serviço ainda em andamento.</p>
+      <div class="status-row"><span id="save-status" role="status" aria-live="polite">Abrindo seu rascunho…</span><span id="offline-status">Verificando acesso sem conexão…</span></div>
+      <div id="update-notice" class="notice" hidden>Há uma atualização disponível. <button id="apply-update" type="button">Atualizar a página</button></div>
+      <p id="storage-warning" class="notice error" hidden></p>
+    </section>
+
+    <form id="report-form">
+      <fieldset id="report-fields" disabled>
+        <section class="card">
+          <div class="section-title"><span class="step">01</span><div><h2>Identifique o trabalho</h2><p>Só o necessário para acompanhar o vídeo.</p></div></div>
+          <label>Nome da obra ou do serviço<input name="title" maxlength="70" required placeholder="Grout · banheiro da casa"></label>
+          <div class="row">
+            <label>Data do trabalho<input name="date" type="date" required></label>
+            <label>Seu nome<input name="author" maxlength="45" placeholder="Bruno"></label>
+          </div>
+          <p id="date-notice" class="notice" hidden></p>
+          <label>Ambiente / serviço apresentado<input name="scope" maxlength="90" placeholder="Bathroom floor · grouting"></label>
+          <div class="row">
+            <label>Legendas do vídeo<select name="language"><option value="en">Inglês</option><option value="pt">Português</option></select></label>
+            <label>Conclusão deste serviço (%) <span class="optional">opcional</span><input name="percent" type="number" min="0" max="100" step="1" inputmode="numeric" placeholder="Ex.: 80"></label>
+          </div>
+          <p class="hint">O percentual é sua estimativa para o serviço indicado acima. Não é uma medição por IA nem a conclusão da obra inteira.</p>
+          <label>Empresa responsável <span class="optional">opcional</span><input name="company" maxlength="55" placeholder="Nome da empresa do seu chefe"></label>
+          <label>Logo da empresa <span class="optional">opcional · pode adicionar amanhã</span><input id="company-logo" type="file" accept="image/*,.heic,.heif"></label>
+          <div id="logo-preview"></div><button id="remove-logo" type="button" class="secondary" hidden>Remover logo</button>
+          <p class="hint">Use uma imagem recortada da logo, se tiver. Sem logo, o vídeo terá identificação neutra. Nenhuma marca de outra empresa será acrescentada.</p>
+        </section>
+
+        <section class="card">
+          <div class="section-title"><span class="step">02</span><div><h2>Conte o dia com fotos</h2><p>Até 4 por etapa. A imagem inteira aparece no vídeo.</p></div></div>
+          <div id="photo-groups"></div>
+          <p id="photo-status" class="hint" role="status" aria-live="polite"></p>
+        </section>
+
+        <section class="card">
+          <div class="section-title"><span class="step">03</span><div><h2>Deixe o resultado claro</h2><p>Textos opcionais, exatamente como aparecerão no vídeo.</p></div></div>
+          <p id="language-hint" class="hint"></p>
+          <label>O que foi feito hoje<textarea name="completed" rows="2" maxlength="220" placeholder="Grouted the bathroom floor."></textarea></label>
+          <label>O que ficou pendente<textarea name="remaining" rows="2" maxlength="220" placeholder="Final cleanup and the doorway area."></textarea></label>
+          <p class="hint">Fim do dia não significa serviço concluído. Se houver partes pendentes, registre aqui e/ou nas fotos de pendências.</p>
+        </section>
+      </fieldset>
+    </form>
+
+    <section class="card export-card">
+      <div class="section-title"><span class="step">04</span><div><h2>Veja e compartilhe</h2><p id="film-summary">Adicione suas fotos para preparar a apresentação.</p></div></div>
+      <p id="compatibility" class="hint" role="status"></p>
+      <div class="actions"><button id="preview" type="button" class="secondary" disabled>Ver prévia</button><button id="export" type="button" class="primary" disabled>Gerar MP4</button></div>
+      <p class="hint">Vídeo vertical, sem áudio, com movimento e transições. Para gerar, mantenha o Safari aberto nesta página por alguns segundos.</p>
+      <div id="render-status" role="status" aria-live="polite"></div>
+      <progress id="render-progress" max="100" value="0" hidden aria-label="Progresso da geração"></progress>
+      <button id="cancel-render" type="button" class="secondary" hidden>Parar</button>
+      <canvas id="film-canvas" width="720" height="1280" aria-label="Prévia do relatório em vídeo" hidden></canvas>
+      <section id="result" hidden>
+        <h3>Seu MP4 está pronto</h3>
+        <video id="result-video" controls playsinline preload="metadata"></video>
+        <div class="actions"><button id="share" type="button" class="primary">Compartilhar MP4</button><a id="download" class="button secondary" download>Salvar MP4</a></div>
+        <p id="video-info" class="hint"></p>
+        <p class="hint">Confira o vídeo antes de enviar. O botão Compartilhar abre as opções do iPhone; você escolhe a pessoa ou o aplicativo.</p>
+      </section>
+    </section>
+
+    <section class="backup card">
+      <h2>Guarde seu registro</h2>
+      <p>O rascunho e as fotos ficam neste navegador, neste aparelho. Não há envio de fotos para um servidor nem análise por IA nesta página. Uma cópia de segurança permite recuperar o registro se o navegador perder os dados.</p>
+      <div class="actions"><button id="backup" class="secondary" type="button" disabled>Salvar cópia do registro</button><label class="button secondary" for="restore">Abrir cópia salva<input id="restore" type="file" accept="application/json,.json" hidden></label></div>
+      <button id="new-report" class="secondary" type="button" disabled>Novo relatório</button>
+      <p class="hint">Use a mesma URL e o mesmo Safari de manhã e no fim do dia. Esta página poderá ser atualizada sem instalar outro app. O MP4 exportado precisa ser salvo ou compartilhado por você.</p>
+    </section>
+    <p id="message" class="notice" role="status" aria-live="polite" hidden></p>
+    <footer>Field Report · registro do trabalho, sem aprovação técnica automática.</footer>
+  </main>
+</body>
+</html>
