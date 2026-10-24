@@ -19,7 +19,8 @@
           "name": "Referrer-Policy",
           "value": "same-origin"
         }
-      ]
+      ],
+      "autoDeploy": true
     }
   ]
 }
