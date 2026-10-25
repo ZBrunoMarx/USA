@@ -16,7 +16,8 @@ let cloudData = null, remoteReports = [], syncTimer, publishing = false, conflic
 let syncError = '', queueRunning = false;
 const inFlightRecords = new Set();
 let libraryList = [], cloudAvailable = false, remoteRefreshing = false;
-const SyncProvider = globalThis.FIELD_REPORT_CLOUD?.provider === 'supabase' ? FieldReportSupabaseSync : FieldReportSync;
+const cloudConfig = globalThis.FIELD_REPORT_CLOUD;
+const SyncProvider = cloudConfig?.provider === 'supabase' && (!cloudConfig.siteOrigin || cloudConfig.siteOrigin === location.origin) ? FieldReportSupabaseSync : FieldReportSync;
 const sync = SyncProvider === FieldReportSync ? new SyncProvider(change => refreshShared(change), text => { $('#connection-status').textContent = text; }) : new SyncProvider(globalThis.FIELD_REPORT_CLOUD, change => refreshShared(change), text => { $('#connection-status').textContent = text; });
 const urls = new Set();
 const canEdit = () => cloud?.canEdit !== false;

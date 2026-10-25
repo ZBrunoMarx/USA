@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><meta name="theme-color" content="#112931"><title>Seu primeiro acesso · Field Report</title><link rel="stylesheet" href="./report.css"><script defer src="./admin-setup.js"></script><script defer src="./setup-copy.js"></script></head>
+<body><header class="top"><strong>FIELD REPORT</strong><span>PRIMEIRO ACESSO · ADMINISTRADOR</span></header><main>
+<section class="intro"><span class="eyebrow">BANCO PREPARADO · PRÓXIMA ETAPA</span><h1>Habilite seu acesso<br>ao aplicativo.</h1><p>Você será o primeiro administrador da sua companhia. Este cadastro é feito uma vez.</p></section>
+<section class="card"><h2>1. Crie seu usuário no Supabase</h2><p>Abra os usuários do projeto. Escolha <strong>Add user → Create new user</strong>, informe seu e-mail e crie uma senha exclusiva com pelo menos 12 caracteres. Mantenha <strong>Auto Confirm User</strong> ativado.</p><a class="button primary" href="https://supabase.com/dashboard/project/rzmhubdajnblxgwcoolt/auth/users" target="_blank" rel="noopener noreferrer">Abrir usuários do Supabase</a><p class="hint">A senha é digitada somente no Supabase. Use o mesmo e-mail na etapa abaixo.</p></section>
+<section class="card"><h2>2. Identifique o administrador</h2><form id="admin-setup-form"><label>E-mail que você cadastrou<input name="email" type="email" autocomplete="email" maxlength="254" required></label><label>Seu nome<input name="displayName" autocomplete="name" value="Bruno" maxlength="100" required></label><label>Nome da companhia<input name="company" maxlength="100" required placeholder="Nome da companhia ou do seu piloto"></label><div class="actions"><button type="button" class="primary" id="copy-sql">Copiar código do administrador</button><button type="button" class="secondary" id="select-sql">Selecionar para copiar</button></div></form><p id="copy-status" class="notice" role="status" aria-live="polite">Preencha os dados e copie o código. Eles são usados apenas para gerar o texto nesta página.</p><details id="sql-details"><summary>Ver o código que será executado</summary><label>Código SQL<textarea id="setup-sql" readonly rows="12" spellcheck="false"></textarea></label></details><textarea id="admin-sql-template" hidden readonly>-- First create your user in Authentication &gt; Users &gt; Add user (confirm email).
+-- Change the three values below, then run once in the project's SQL Editor.
+-- Passwords are entered only in Supabase Auth, never in this script.
+do $$
+declare
+  admin_email text := 'SEU_EMAIL_AQUI';
+  admin_name text := 'Bruno';
+  company_name text := 'Minha companhia';
+  user_id uuid;
+  company uuid;
+begin
+  select id into user_id from auth.users where lower(email)=lower(admin_email);
+  if user_id is null then raise exception 'Crie primeiro o usuário em Authentication &gt; Users com o mesmo e-mail informado neste arquivo.'; end if;
+  select company_id into company from public.fr_members where id=user_id;
+  if company is not null then raise notice 'Este usuário já possui uma companhia. Nenhum acesso foi alterado.'; return; end if;
+  insert into public.fr_companies(name) values(company_name) returning id into company;
+  insert into public.fr_members(id,company_id,display_name,role) values(user_id,company,admin_name,'admin');
+end $$;
+</textarea></section>
+<section class="card"><h2>3. Execute no SQL Editor</h2><p>Abra uma nova consulta, cole com <strong>⌘ + V</strong> no Mac e toque em <strong>Run</strong>. A mensagem <strong>Success. No rows returned</strong> confirma a execução.</p><a class="button primary" href="https://supabase.com/dashboard/project/rzmhubdajnblxgwcoolt/sql/new" target="_blank" rel="noopener noreferrer">Abrir SQL Editor</a></section>
+<section class="card"><h2>4. Entre no aplicativo</h2><p>Abra o app e use o e-mail e a senha criados na primeira etapa. Como administrador, você poderá cadastrar uma obra e publicar seu primeiro serviço.</p><a class="button primary" href="./">Abrir aplicativo</a></section>
+<footer>Field Report · habilitação do primeiro administrador.</footer></main></body></html>

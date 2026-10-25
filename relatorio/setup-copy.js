@@ -7,9 +7,10 @@ function selectSetupCode() {
   setupStatus.textContent = 'Código selecionado. No Mac, pressione ⌘ + C para copiar. Depois cole no SQL Editor com ⌘ + V.';
 }
 document.querySelector('#copy-sql').onclick = async () => {
+  if (globalThis.prepareSetupSQL && !globalThis.prepareSetupSQL()) return;
   try {
     await navigator.clipboard.writeText(setupCode.value);
     setupStatus.textContent = 'Código completo copiado. Abra o SQL Editor, cole com ⌘ + V no Mac e toque em Run.';
   } catch { selectSetupCode(); }
 };
-document.querySelector('#select-sql').onclick = selectSetupCode;
+document.querySelector('#select-sql').onclick = () => { if (!globalThis.prepareSetupSQL || globalThis.prepareSetupSQL()) selectSetupCode(); };

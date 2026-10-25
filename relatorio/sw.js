@@ -1,6 +1,6 @@
-const CACHE = 'field-report-v2-1';
+const CACHE = 'field-report-v2-2';
 const ASSETS = ['./', './index.html', './report.js', './report.css', './library.js', './sync.js', './cloud-config.js', './supabase-vendor.js', './supabase-sync.js'];
-self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS))));
+self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS.map(path => new Request(path, { cache: 'reload' }))))));
 self.addEventListener('activate', event => event.waitUntil(Promise.all([
   caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('field-report-') && key !== CACHE).map(key => caches.delete(key)))),
   self.clients.claim(),
@@ -12,7 +12,7 @@ self.addEventListener('fetch', event => {
   event.respondWith((async () => {
     const cache = await caches.open(CACHE);
     try {
-      const response = await fetch(event.request);
+      const response = await fetch(event.request, { cache: 'no-cache' });
       if (response.ok) await cache.put(event.request, response.clone());
       if (response.ok || response.status < 500) return response;
       const saved = await cache.match(event.request);

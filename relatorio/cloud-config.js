@@ -1,4 +1,8 @@
 'use strict';
-// Public configuration only. Keep null until your Supabase project is ready.
-// A publishable key is safe to ship; never put an OpenAI/service-role/secret key here.
-globalThis.FIELD_REPORT_CLOUD = null;
+// Public Supabase configuration. Authentication and database/storage policies protect access.
+globalThis.FIELD_REPORT_CLOUD = {
+  "provider": "supabase",
+  "url": "https://rzmhubdajnblxgwcoolt.supabase.co",
+  "publishableKey": "sb_publishable_-TIukr6DA-ZqnGJEawcFVQ_Ma2OcLQH",
+  "siteOrigin": "https://zbrunomarx.github.io"
+};
