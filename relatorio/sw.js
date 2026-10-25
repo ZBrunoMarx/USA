@@ -1,5 +1,5 @@
-const CACHE = 'field-report-v1';
-const ASSETS = ['./', './index.html', './report.js', './report.css'];
+const CACHE = 'field-report-v2';
+const ASSETS = ['./', './index.html', './report.js', './report.css', './library.js', './sync.js'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS))));
 self.addEventListener('activate', event => event.waitUntil(Promise.all([
   caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('field-report-') && key !== CACHE).map(key => caches.delete(key)))),
@@ -14,7 +14,9 @@ self.addEventListener('fetch', event => {
     try {
       const response = await fetch(event.request);
       if (response.ok) await cache.put(event.request, response.clone());
-      return response;
+      if (response.ok || response.status < 500) return response;
+      const saved = await cache.match(event.request);
+      return saved || response;
     } catch {
       const saved = await cache.match(event.request);
       if (saved) return saved;

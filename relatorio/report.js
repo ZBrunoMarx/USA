@@ -9,9 +9,18 @@ const groups = [
 const names = ['title', 'date', 'author', 'scope', 'language', 'percent', 'company', 'completed', 'remaining'];
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
 const defaults = () => ({ title: '', date: today(), author: 'Bruno', scope: 'Grouting', language: 'en', percent: '', company: '', completed: '', remaining: '' });
-let photos = { before: [], after: [], pending: [] }, logo = null, db = null, saveTimer, saveChain = Promise.resolve();
+let photos = { before: [], after: [], pending: [] }, logo = null, library = null, saveTimer, saveChain = Promise.resolve();
 let busy = false, importing = false, controller = null, videoFile = null, videoURL = null, wakeLock = null;
+let recordId = crypto.randomUUID(), localRevision = 0, recordStatus = 'active', cloud = null;
+let cloudData = null, remoteReports = [], syncTimer, publishing = false, conflict = false, libraryVisible = false;
+let syncError = '', queueRunning = false;
+const inFlightRecords = new Set();
+let libraryList = [], cloudAvailable = false, remoteRefreshing = false;
+const sync = new FieldReportSync(change => refreshShared(change), text => { $('#connection-status').textContent = text; });
 const urls = new Set();
+const canEdit = () => cloud?.canEdit !== false;
+const lockFields = () => { fields.disabled = busy || importing || !canEdit() || recordStatus === 'archived'; };
+
 const objectURL = blob => { const url = URL.createObjectURL(blob); urls.add(url); return url; };
 const revoke = url => { if (url) { URL.revokeObjectURL(url); urls.delete(url); } };
 const escapeHTML = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -21,7 +30,8 @@ function message(text, error = false) {
   const element = $('#message'); element.textContent = text; element.className = 'notice' + (error ? ' error' : ''); element.hidden = !text;
 }
 function warning(text) { $('#storage-warning').textContent = text; $('#storage-warning').hidden = !text; }
-function invalidate() {
+function invalidate(changed = true) {
+  if (changed && cloud) { cloud.dirty = true; syncError = ''; $('#sync-status').textContent = 'Alterações aguardando envio'; }
   if (videoURL) { $('#result-video').pause(); $('#result-video').removeAttribute('src'); revoke(videoURL); videoURL = null; }
   videoFile = null; $('#result').hidden = true;
 }
@@ -32,39 +42,21 @@ function setValues(data) {
   }
   if (!['en', 'pt'].includes(form.elements.language.value)) form.elements.language.value = 'en';
 }
-function snapshot() { return { version: 1, fields: values(), photos, logo, savedAt: Date.now() }; }
-function openDB() {
-  return new Promise((resolve, reject) => {
-    let finished = false;
-    const timer = setTimeout(() => { finished = true; reject(new Error('storage timeout')); }, 1800);
-    let request;
-    try { request = indexedDB.open('field-report-v1', 1); } catch (error) { clearTimeout(timer); reject(error); return; }
-    request.onupgradeneeded = () => request.result.createObjectStore('draft');
-    request.onsuccess = () => { if (finished) { request.result.close(); return; } finished = true; clearTimeout(timer); resolve(request.result); };
-    request.onerror = () => { if (!finished) { finished = true; clearTimeout(timer); reject(request.error); } };
-  });
-}
-function readDB() {
-  return new Promise((resolve, reject) => {
-    const request = db.transaction('draft', 'readonly').objectStore('draft').get('current');
-    request.onsuccess = () => resolve(request.result); request.onerror = () => reject(request.error);
-  });
-}
+const contentKey = record => JSON.stringify([record.fields, record.status, Object.values(record.photos).map(items => items.map(item => item.id)), record.logo?.id || null]);
+function snapshot() { return { id: recordId, version: 1, fields: values(), photos: Object.fromEntries(groups.map(group => [group.id, [...photos[group.id]]])), logo, status: recordStatus, cloud: cloud ? { ...cloud } : null, savedAt: Date.now() }; }
 function saveNow() {
   clearTimeout(saveTimer);
   const data = snapshot();
-  if (!db) { $('#save-status').textContent = 'Rascunho só nesta aba · salve uma cópia'; return Promise.resolve(); }
+  if (!library) { $('#save-status').textContent = 'Só nesta aba · salve uma cópia'; return Promise.resolve(false); }
   $('#save-status').textContent = 'Salvando neste navegador…';
-  saveChain = saveChain.catch(() => {}).then(() => new Promise((resolve, reject) => {
-    let transaction;
-    try { transaction = db.transaction('draft', 'readwrite'); transaction.objectStore('draft').put(data, 'current'); }
-    catch (error) { reject(error); return; }
-    transaction.oncomplete = resolve; transaction.onerror = () => reject(transaction.error); transaction.onabort = () => reject(transaction.error);
-  })).then(() => { $('#save-status').textContent = 'Salvo neste navegador'; }).catch(() => {
-    $('#save-status').textContent = 'Não foi possível salvar o rascunho';
-    warning('O navegador não conseguiu guardar as fotos. Use “Salvar cópia do registro” antes de fechar esta aba.');
-  });
-  return saveChain;
+  const task = saveChain.catch(() => {}).then(async () => {
+    if (recordId === data.id && data.cloud && cloud) data.cloud = { ...cloud, dirty: data.cloud.dirty || cloud.dirty };
+    const saved = await library.save(data, localRevision);
+    if (recordId === data.id) localRevision = saved.localRevision;
+    $('#save-status').textContent = 'Salvo neste navegador';
+    scheduleSync(); if (cloudData) void flushPending(); return true;
+  }).catch(error => { $('#save-status').textContent = 'Não foi possível salvar'; warning(error.message || 'Use Salvar cópia do registro antes de fechar.'); return false; });
+  saveChain = task; return task;
 }
 function scheduleSave() { $('#save-status').textContent = 'Salvando neste navegador…'; clearTimeout(saveTimer); saveTimer = setTimeout(saveNow, 250); }
 function codec() {
@@ -86,10 +78,20 @@ function update() {
   $('#backup').disabled = busy || importing;
   $('#new-report').disabled = busy || importing;
   $('#restore').disabled = busy || importing;
+  for (const name of ['show-services', 'save-service', 'new-service', 'archive-report', 'remove-local', 'cloud-logout']) $('#' + name).disabled = busy || importing || publishing;
+  $('#archive-report').disabled ||= !canEdit();
+  $('#cloud-logout').disabled ||= queueRunning;
+  $('#archive-report').textContent = recordStatus === 'archived' ? 'Reabrir serviço' : 'Arquivar serviço';
+  $('#record-state').textContent = recordStatus === 'archived' ? 'Serviço arquivado' : 'Serviço em andamento';
+  $('#publish-report').disabled = busy || importing || publishing || !cloudData || !canEdit() || conflict;
+  $('#cloud-job').disabled = !!cloud?.revision || publishing || !canEdit();
+  $('#reload-remote').disabled = busy || importing || publishing;
+  $('#readonly-notice').hidden = canEdit();
+  lockFields();
   $('#language-hint').textContent = form.elements.language.value === 'en' ? 'As legendas fixas serão em inglês. Escreva os textos abaixo em inglês, se quiser incluí-los.' : 'As legendas fixas e os textos do vídeo podem ficar em português.';
   const differentDay = values().date && values().date !== today();
   $('#date-notice').hidden = !differentDay;
-  $('#date-notice').textContent = differentDay ? 'Confira a data: este registro está em ' + values().date + ', diferente de hoje. Para outro dia de trabalho, você pode iniciar um Novo relatório após salvar sua cópia.' : '';
+  $('#date-notice').textContent = differentDay ? 'Confira a data: este registro está em ' + values().date + ', diferente de hoje. Para outro dia de trabalho, inicie um Novo relatório. O serviço atual continuará na sua lista.' : '';
 }
 function renderPhotos() {
   for (const url of [...urls]) if (url !== videoURL) revoke(url);
@@ -133,7 +135,7 @@ async function importPhotos(group, files) {
       $('#photo-status').textContent = 'Preparando foto ' + (index + 1) + ' de ' + files.length + '…';
       try { photos[group].push(await prepareImage(file)); invalidate(); await saveNow(); } catch (error) { message(error.message, true); }
     }
-  } finally { importing = false; fields.disabled = false; $('#photo-status').textContent = ''; renderPhotos(); }
+  } finally { importing = false; lockFields(); $('#photo-status').textContent = ''; renderPhotos(); }
 }
 const words = {
   en: { report: 'DAILY WORK REPORT', before: 'START OF DAY', after: 'END OF DAY', pending: 'REMAINING WORK', closing: 'END-OF-DAY SUMMARY', reported: 'REPORTED COMPLETION', done: 'Work recorded today', remaining: 'Remaining work', note: 'Progress reported for the scope shown', by: 'Prepared by', noPercent: 'WORK UPDATE', pendingPhotos: 'See remaining-work photos in this report' },
@@ -217,7 +219,7 @@ function paint(context, plan, time, images) {
 async function play(record) {
   if (busy || importing || !form.reportValidity() || !countPhotos()) return;
   if (record && !codec()) { message('Este navegador não oferece gravação MP4. Abra esta página no Safari atualizado e teste novamente.', true); return; }
-  await saveNow(); invalidate(); message('');
+  await saveNow(); invalidate(false); message('');
   busy = true; fields.disabled = true; controller = new AbortController(); update();
   $('#cancel-render').hidden = false; $('#render-progress').hidden = false; $('#render-progress').value = 0;
   $('#film-canvas').hidden = false; $('#render-status').textContent = record ? 'Preparando o MP4. Mantenha esta página aberta…' : 'Prévia da apresentação…';
@@ -272,7 +274,7 @@ async function play(record) {
     if (recorder && recorder.state !== 'inactive') recorder.stop();
   } finally {
     stream?.getTracks().forEach(track => track.stop()); try { await wakeLock?.release(); } catch {} wakeLock = null;
-    document.removeEventListener('visibilitychange', visibility); controller = null; busy = false; fields.disabled = false;
+    document.removeEventListener('visibilitychange', visibility); controller = null; busy = false; lockFields();
     $('#cancel-render').hidden = true; $('#render-progress').hidden = true; update();
   }
 }
@@ -301,23 +303,223 @@ async function restore(file) {
     const restored = {};
     for (const group of groups) { const list = data.photos[group.id]; if (!Array.isArray(list) || list.length > 4) throw new Error('photos'); restored[group.id] = list.map(decode); }
     const restoredLogo = data.logo ? decode(data.logo) : null;
-    if (countPhotos() && !confirm('Abrir esta cópia substitui o rascunho atual neste navegador. Deseja continuar?')) return;
+    if (!await newRecord(false)) return;
     photos = restored; logo = restoredLogo; setValues(data.fields); invalidate(); renderPhotos(); await saveNow(); message('Registro recuperado da cópia salva.');
   } catch { message('Não foi possível abrir essa cópia. Escolha o arquivo JSON exportado por esta página.', true); }
+}
+function activate(record) {
+  clearTimeout(saveTimer); clearTimeout(syncTimer);
+  recordId = record.id; localRevision = record.localRevision || 0; recordStatus = record.status || 'active'; cloud = record.cloud || null; conflict = cloud?.conflict === true; syncError = '';
+  setValues(record.fields || defaults()); photos = { before: [], after: [], pending: [] };
+  for (const group of groups) if (Array.isArray(record.photos?.[group.id])) photos[group.id] = record.photos[group.id].filter(item => item.blob instanceof Blob).slice(0, 4);
+  logo = record.logo?.blob instanceof Blob ? record.logo : null;
+  invalidate(false); renderPhotos(); showEditor(); refreshCloudControls();
+}
+function showEditor() { libraryVisible = false; $('#editor').hidden = false; $('#service-library').hidden = true; }
+async function showLibrary() {
+  if (busy || importing || publishing) return;
+  if (!await saveNow()) return;
+  libraryVisible = true; $('#editor').hidden = true; $('#service-library').hidden = false;
+  await renderLibrary(); window.scrollTo(0, 0);
+}
+async function newRecord(ask = false) {
+  if (busy || importing || publishing) return false;
+  if (!await saveNow()) return false;
+  // Starting a report keeps the old one. Confirmation only explains the changed behavior.
+  if (ask && !confirm('Seu serviço atual será mantido na lista. Iniciar outro relatório?')) return false;
+  activate({ id: crypto.randomUUID(), fields: defaults(), photos: {}, status: 'active' });
+  const saved = await saveNow(); if (!saved) return false;
+  message('Novo serviço criado. O anterior continua na lista de Serviços.'); window.scrollTo(0, 0); return true;
+}
+async function renderLibrary() {
+  libraryList = library ? await library.list() : [];
+  const combined = new Map(libraryList.map(item => [item.id, { ...item, local: true }]));
+  for (const remote of remoteReports) {
+    const local = combined.get(remote.id);
+    if (!local || !local.cloud?.dirty) combined.set(remote.id, { id: remote.id, title: remote.fields.title, date: remote.fields.date, scope: remote.fields.scope, percent: remote.fields.percent, status: remote.status, savedAt: Date.parse(remote.updatedAt), photoCount: remote.photoCount, local: !!local, shared: true, cloud: { jobId: remote.jobId, revision: remote.revision } });
+    else local.shared = true;
+  }
+  const filter = $('#service-filter').value, query = $('#service-search').value.trim().toLocaleLowerCase();
+  const jobFilter = $('#service-job').value;
+  const list = [...combined.values()].filter(item => item.hasContent !== false && (!jobFilter || item.cloud?.jobId === jobFilter) && (filter === 'all' || item.status === filter) && (item.title + ' ' + item.scope).toLocaleLowerCase().includes(query)).sort((a, b) => b.savedAt - a.savedAt);
+  $('#library-status').textContent = list.length + ' serviço(s)' + (cloudData ? ' · aparelho e companhia' : ' · neste navegador');
+  $('#service-list').innerHTML = list.map(item => '<article class="service-item"><span class="badge">' + (item.status === 'archived' ? 'Arquivado' : 'Em andamento') + '</span><h3>' + escapeHTML(item.title || 'Serviço sem nome') + '</h3><p>' + escapeHTML(item.scope || 'Sem ambiente informado') + ' · ' + escapeHTML(item.date || '') + '</p><p>' + item.photoCount + ' foto(s)' + (item.percent !== '' ? ' · ' + escapeHTML(item.percent) + '% informado' : '') + '</p><p>' + (item.cloud?.conflict ? 'Outra pessoa atualizou · sua cópia está preservada' : item.cloud?.dirty ? 'Alterações aguardando envio' : item.shared || item.cloud ? 'Salvo na companhia' : 'Somente neste aparelho') + '</p><div class="actions"><button class="primary" data-open-record="' + item.id + '" type="button">Abrir serviço</button>' + (item.local ? '<button class="secondary danger" data-remove-record="' + item.id + '" type="button">Remover do aparelho</button>' : '') + '</div></article>').join('') || '<p>Nenhum serviço nesta seleção.</p>';
+  document.querySelectorAll('[data-open-record]').forEach(button => button.onclick = () => void runTask(() => openRecord(button.dataset.openRecord)));
+  document.querySelectorAll('[data-remove-record]').forEach(button => button.onclick = () => void runTask(() => removeRecord(button.dataset.removeRecord)));
+}
+async function runTask(action) { try { await action(); } catch (error) { message(error.message || 'Não foi possível concluir. Tente novamente.', true); } }
+async function openRecord(id, forceRemote = false) {
+  if (busy || importing || publishing || !library) return;
+  if (inFlightRecords.has(id)) { message('Este serviço está sendo enviado. Aguarde alguns segundos e abra novamente.'); return; }
+  if (!await saveNow()) return;
+  const local = await library.get(id), remote = remoteReports.find(item => item.id === id);
+  let record = local;
+  if (cloudData && remote && (forceRemote || !local || (!local.cloud?.dirty && remote.revision > (local.cloud?.revision || 0)))) {
+    const incoming = await sync.download(id);
+    // A network request must not overwrite edits made while the photos were downloading.
+    await saveChain;
+    const latest = await library.get(id);
+    if (!forceRemote && latest?.cloud?.dirty) { record = latest; }
+    else record = await library.save(incoming, latest?.localRevision || 0);
+  }
+  if (!record) throw new Error('Serviço não encontrado.');
+  if (record.cloud && cloudData) record.cloud.canEdit = cloudData.user.role === 'admin' || record.cloud.ownerId === cloudData.user.id;
+  activate(record); await library.select(id); scheduleSync(); message(''); window.scrollTo(0, 0);
+}
+async function removeRecord(id) {
+  if (busy || importing || publishing || !library || inFlightRecords.has(id)) return;
+  if (id === recordId && !await saveNow()) return;
+  const record = await library.get(id); if (!record) return;
+  if (record.cloud?.dirty) { message('Publique as alterações antes de remover a cópia local. As fotos que ainda não foram enviadas serão preservadas.', true); return; }
+  const text = record.cloud ? 'Remover as fotos deste aparelho? O relatório já enviado permanece no servidor e pode ser aberto novamente com login.' : 'Este serviço só existe neste aparelho. Salve uma cópia JSON antes de remover. Remover o registro e suas fotos deste navegador?';
+  if (!confirm(text)) return;
+  await library.remove(id);
+  if (id === recordId) {
+    clearTimeout(saveTimer); clearTimeout(syncTimer); invalidate(false); photos = { before: [], after: [], pending: [] }; logo = null; cloud = null; localRevision = 0; recordStatus = 'active'; conflict = false; recordId = crypto.randomUUID(); setValues(defaults()); renderPhotos();
+    libraryVisible = true; $('#editor').hidden = true; $('#service-library').hidden = false;
+  }
+  await renderLibrary(); message('Cópia removida deste aparelho. Arquivos MP4 salvos em Fotos ou Arquivos são gerenciados pelo próprio iPhone.');
+}
+function refreshCloudControls() {
+  $('#cloud-tools').hidden = !cloudData;
+  if (!cloudData) return;
+  const selected = cloud?.jobId || $('#cloud-job').value;
+  $('#cloud-job').innerHTML = '<option value="">Selecione uma obra</option>' + cloudData.jobs.filter(job => job.status !== 'delivered' || job.id === selected).map(job => '<option value="' + escapeHTML(job.id) + '">' + escapeHTML(job.name) + '</option>').join('');
+  $('#cloud-job').value = selected;
+  const filterJob = $('#service-job').value;
+  $('#service-job-label').hidden = false;
+  $('#service-job').innerHTML = '<option value="">Todas as obras e registros locais</option>' + cloudData.jobs.map(job => '<option value="' + escapeHTML(job.id) + '">' + escapeHTML(job.name) + '</option>').join('');
+  $('#service-job').value = filterJob;
+  $('#sync-status').textContent = conflict ? 'Outra pessoa alterou o relatório. Sua cópia foi preservada.' : publishing ? 'Enviando fotos e registro…' : syncError ? syncError : cloud?.dirty ? 'Salvo no aparelho · aguardando envio' : cloud?.revision ? 'Salvo no servidor · ' + new Date(cloud.syncedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'Escolha a obra e publique para compartilhar este serviço.';
+  $('#reload-remote').hidden = !conflict;
+  $('#storage-explanation').textContent = 'Fotos enviadas ficam no servidor da companhia. Use Remover deste aparelho para liberar a cópia local após a confirmação do envio. Registros só locais precisam de cópia de segurança. Esta página não analisa fotos por IA.';
+  update();
+}
+async function flushPending() {
+  if (queueRunning || !cloudData || !library || !navigator.onLine) return;
+  queueRunning = true; update();
+  try {
+    for (const item of await library.list()) {
+      if (item.id === recordId || !item.cloud?.dirty || item.cloud.conflict || inFlightRecords.has(item.id) || (cloudData.user.role !== 'admin' && item.cloud.ownerId !== cloudData.user.id)) continue;
+      inFlightRecords.add(item.id);
+      try {
+        const sent = await library.get(item.id);
+        const result = await sync.publish(sent, sent.cloud.jobId);
+        await library.synced(item.id, sent.localRevision, { jobId: result.jobId, revision: result.revision, ownerId: result.ownerId, canEdit: result.canEdit, syncedAt: result.updatedAt });
+      } catch (error) {
+        if (error.status === 409) { const latest = await library.get(item.id); if (latest) { latest.cloud.conflict = true; await library.save(latest, latest.localRevision); } }
+        if (error.status === 401 || !navigator.onLine) break;
+      } finally { inFlightRecords.delete(item.id); }
+    }
+    if (libraryVisible) await renderLibrary();
+  } finally { queueRunning = false; update(); }
+}
+function scheduleSync() {
+  clearTimeout(syncTimer);
+  if (cloudData && cloud?.jobId && cloud.dirty && !conflict && canEdit()) syncTimer = setTimeout(() => void publishRecord(false), 1600);
+}
+async function publishRecord(explicit = true) {
+  if (!cloudData || publishing || busy || importing || conflict || !canEdit()) { if (!explicit) scheduleSync(); return; }
+  const jobId = cloud?.jobId || $('#cloud-job').value;
+  if (!jobId || !values().title.trim()) { if (explicit) message('Informe o nome do serviço e selecione a obra para publicar.', true); return; }
+  if (!navigator.onLine) { $('#sync-status').textContent = 'Sem conexão · alterações guardadas no aparelho'; return; }
+  if (!cloud) cloud = { jobId, revision: 0, ownerId: cloudData.user.id, canEdit: true, dirty: true };
+  syncError = ''; publishing = true; clearTimeout(syncTimer); refreshCloudControls();
+  try {
+    if (!await saveNow()) throw new Error('Salve uma cópia antes de continuar.');
+    clearTimeout(syncTimer);
+    const sent = await library.get(recordId), id = recordId;
+    const result = await sync.publish(sent, jobId);
+    await saveChain;
+    const synced = await library.synced(id, sent.localRevision, { jobId, revision: result.revision, ownerId: result.ownerId, canEdit: result.canEdit, syncedAt: result.updatedAt });
+    if (recordId === id) { cloud = synced.cloud; localRevision = synced.localRevision; if (contentKey(snapshot()) !== contentKey(sent)) { cloud.dirty = true; await saveNow(); } }
+    if (explicit) message('Atualização salva no servidor da companhia.');
+  } catch (error) {
+    if (error.status === 409) conflict = true;
+    if (error.status === 401) { sync.stop(); $('#connection-status').textContent = 'Sessão encerrada. Entre novamente para enviar.'; $('#cloud-login').hidden = false; }
+    syncError = error.message || 'Falha de conexão · registro preservado no aparelho';
+    $('#sync-status').textContent = syncError;
+    if (explicit || conflict) message(error.message || 'Não foi possível enviar. Seu registro local permanece salvo.', true);
+  } finally { publishing = false; refreshCloudControls(); if (cloud?.dirty && !conflict && !syncError) scheduleSync(); }
+}
+async function refreshShared(change) {
+  if (remoteRefreshing || !cloudData) return;
+  remoteRefreshing = true;
+  try {
+    cloudData = await sync.list(); remoteReports = cloudData.reports;
+    const current = remoteReports.find(item => item.id === recordId);
+    if (current && cloud && current.revision > cloud.revision && !publishing && !busy && !importing) {
+      if (cloud.dirty) conflict = true;
+      else if (!libraryVisible) {
+        const expectedId = recordId, expectedRevision = localRevision, incoming = await sync.download(recordId);
+        if (recordId === expectedId && localRevision === expectedRevision && !cloud?.dirty && !busy && !importing) { const saved = await library.save(incoming, localRevision); activate(saved); }
+      }
+    }
+    refreshCloudControls(); if (libraryVisible) await renderLibrary();
+  } catch (error) { $('#connection-status').textContent = error.status === 401 ? 'Entre novamente para acompanhar a companhia' : 'Sem conexão com a companhia · dados locais preservados'; if (error.status === 401) { sync.stop(); $('#cloud-login').hidden = false; } }
+  finally { remoteRefreshing = false; }
+}
+async function enterShared() {
+  cloudData = await sync.list(); remoteReports = cloudData.reports;
+  $('#cloud-login').hidden = true; $('#cloud-account').hidden = false; $('#cloud-user').textContent = cloudData.user.name;
+  $('#connection-title').textContent = 'Registros da companhia'; $('#connection-description').textContent = 'Usuários autenticados desta companhia acompanham as mesmas obras. Cada profissional publica seus registros; administradores podem revisar e editar.';
+  if (cloud) cloud.canEdit = cloudData.user.role === 'admin' || cloud.ownerId === cloudData.user.id;
+  refreshCloudControls(); sync.watch();
+  const requested = new URLSearchParams(location.search).get('report'); if (requested && remoteReports.some(item => item.id === requested)) await openRecord(requested);
+  const requestedJob = new URLSearchParams(location.search).get('job');
+  if (requestedJob && cloudData.jobs.some(job => job.id === requestedJob) && !requested) { $('#service-job').value = requestedJob; $('#cloud-job').value = requestedJob; await showLibrary(); }
+  scheduleSync(); void flushPending();
+}
+async function startShared() {
+  cloudAvailable = await sync.detect();
+  if (!cloudAvailable) { $('#connection-description').textContent = cloud ? 'Sem acesso ao servidor: este serviço permanece neste aparelho. As alterações aguardam conexão e login para envio.' : 'Modo local: serviços e fotos ficam neste navegador, separados por registro. Este link ainda não compartilha atualizações entre aparelhos. Salve uma cópia antes de remover dados locais.'; return; }
+  $('#connection-title').textContent = 'Acesse sua companhia'; $('#connection-description').textContent = 'Entre para compartilhar fotos e acompanhar as atualizações das obras.';
+  $('#cloud-login').hidden = false;
+  try { await enterShared(); } catch { $('#connection-status').textContent = 'Entre com seu ID e senha.'; }
+}
+function wireWorkspace() {
+  $('#show-services').onclick = $('#save-service').onclick = () => void runTask(showLibrary);
+  $('#new-service').onclick = () => void runTask(() => newRecord(false));
+  $('#service-search').oninput = $('#service-filter').onchange = $('#service-job').onchange = () => void runTask(renderLibrary);
+  $('#archive-report').onclick = () => void runTask(async () => { if (busy || importing || publishing || !canEdit()) return; recordStatus = recordStatus === 'archived' ? 'active' : 'archived'; if (cloud) cloud.dirty = true; await saveNow(); update(); refreshCloudControls(); message(recordStatus === 'archived' ? 'Serviço arquivado. Ele continua disponível no filtro Arquivados. Arquivar não altera o percentual nem confirma a entrega da obra.' : 'Serviço reaberto. Histórico e fotos preservados.'); });
+  $('#remove-local').onclick = () => void runTask(() => removeRecord(recordId));
+  $('#publish-report').onclick = () => void publishRecord(true);
+  $('#cloud-login').onsubmit = event => { event.preventDefault(); void runTask(async () => { const element = $('#cloud-login'); await sync.login(element.elements.login.value, element.elements.password.value); element.elements.password.value = ''; await enterShared(); }); };
+  $('#cloud-logout').onclick = () => void runTask(async () => {
+    if (busy || importing || publishing || !library) return;
+    if (!await saveNow()) return;
+    const list = await library.list(); if (list.some(item => item.cloud?.dirty)) { message('Há alterações compartilhadas ainda não enviadas. Publique ou salve uma cópia antes de sair.', true); return; }
+    if (!confirm('Sair e remover as cópias compartilhadas deste aparelho? Os registros enviados permanecem no servidor. Serviços só locais serão mantidos.')) return;
+    await sync.logout();
+    for (const item of list) if (item.cloud) await library.remove(item.id);
+    cloudData = null; remoteReports = []; cloud = null; activate({ id: crypto.randomUUID(), fields: defaults(), photos: {}, status: 'active' }); await saveNow();
+    $('#cloud-login').hidden = false; $('#cloud-account').hidden = true; $('#cloud-tools').hidden = true; $('#service-job-label').hidden = true; $('#service-job').value = ''; $('#connection-title').textContent = 'Acesse sua companhia'; $('#connection-status').textContent = 'Sessão encerrada · cópias compartilhadas removidas'; await showLibrary();
+  });
+  $('#reload-remote').onclick = () => void runTask(async () => {
+    if (!conflict || !cloud || publishing || busy || importing) return;
+    if (!await saveNow()) return;
+    const originalId = recordId, original = await library.get(recordId);
+    const copy = { ...original, id: crypto.randomUUID(), cloud: null, fields: { ...original.fields, title: (original.fields.title + ' · cópia local').slice(0, 70) } };
+    await library.save(copy, 0);
+    await openRecord(originalId, true); message('Sua edição foi preservada como outro serviço local. A versão atual do servidor está aberta.');
+  });
+  window.addEventListener('online', () => { if (!cloudData) void startShared(); else { void refreshShared(); scheduleSync(); void flushPending(); } });
+  window.addEventListener('offline', () => { if (cloud) $('#sync-status').textContent = 'Sem conexão · alterações guardadas no aparelho'; });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) void refreshShared(); });
 }
 async function boot() {
   setValues(defaults());
   try {
-    db = await openDB(); db.onversionchange = () => { db.close(); db = null; warning('O armazenamento foi atualizado em outra aba. Salve uma cópia e reabra esta página.'); };
-    const draft = await readDB();
-    if (draft?.version === 1 && draft.fields && draft.photos) {
-      setValues(draft.fields);
-      for (const group of groups) if (Array.isArray(draft.photos[group.id])) photos[group.id] = draft.photos[group.id].filter(item => item.blob instanceof Blob).slice(0, 4);
-      if (draft.logo?.blob instanceof Blob) logo = draft.logo;
-    }
-    $('#save-status').textContent = draft ? 'Rascunho recuperado deste navegador' : 'Rascunho salvo neste navegador';
-  } catch { db = null; $('#save-status').textContent = 'Rascunho só nesta aba'; warning('O armazenamento não está disponível. Use “Salvar cópia do registro” antes de fechar ou trocar de aparelho.'); }
-  fields.disabled = false; renderPhotos();
+    library = await FieldReportLibrary.open();
+    library.db.onversionchange = () => { library.db.close(); library = null; warning('Atualização em outra aba. Salve uma cópia e reabra a página.'); };
+    const current = await library.current(), draft = current ? await library.get(current) : null;
+    if (draft) activate(draft);
+    $('#save-status').textContent = draft ? 'Serviço recuperado deste navegador' : 'Novo serviço · salvo ao preencher';
+    if (!draft) await saveNow();
+  } catch { library = null; $('#save-status').textContent = 'Só nesta aba'; warning('O armazenamento não está disponível. Salve uma cópia antes de fechar. A troca entre serviços precisa do armazenamento do navegador.'); }
+  lockFields(); renderPhotos();
+  wireWorkspace();
+  void startShared();
   const supported = !!codec();
   $('#compatibility').textContent = supported ? 'Este navegador informa suporte a MP4. Faça um vídeo de teste hoje antes de depender da exportação em campo.' : 'MP4 não está disponível neste navegador. Use o Safari atualizado no iPhone e teste a exportação.';
   form.addEventListener('submit', event => event.preventDefault());
@@ -326,17 +528,12 @@ async function boot() {
     const file = event.target.files[0]; event.target.value = ''; if (!file || busy || importing) return;
     importing = true; fields.disabled = true; update();
     try { logo = await prepareImage(file, true); invalidate(); await saveNow(); } catch (error) { message(error.message, true); }
-    finally { importing = false; fields.disabled = false; renderPhotos(); }
+    finally { importing = false; lockFields(); renderPhotos(); }
   };
   $('#remove-logo').onclick = () => { logo = null; invalidate(); renderPhotos(); void saveNow(); };
   $('#preview').onclick = () => void play(false); $('#export').onclick = () => void play(true);
   $('#cancel-render').onclick = () => controller?.abort(); $('#backup').onclick = () => void backup();
-  $('#new-report').onclick = async () => {
-    if (busy || importing) return;
-    if (!confirm('Iniciar um novo relatório substitui este rascunho. Salve o MP4 e uma cópia do registro se quiser manter as fotos. Continuar?')) return;
-    photos = { before: [], after: [], pending: [] }; logo = null; setValues(defaults()); invalidate(); renderPhotos(); await saveNow();
-    message('Novo relatório iniciado. O rascunho anterior só permanece nas cópias que você salvou.'); window.scrollTo(0, 0);
-  };
+  $('#new-report').onclick = () => void newRecord(true);
   $('#restore').onchange = event => { const file = event.target.files[0]; event.target.value = ''; void restore(file); };
   $('#share').onclick = async () => {
     if (!videoFile) return;
