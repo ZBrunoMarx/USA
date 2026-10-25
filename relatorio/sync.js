@@ -1,6 +1,6 @@
 'use strict';
 globalThis.FieldReportSync = class {
-  constructor(onChange, onStatus) { this.onChange = onChange; this.onStatus = onStatus; this.images = new Map(); this.enabled = false; this.user = null; this.events = null; this.timer = null; }
+  constructor(onChange, onStatus) { this.onChange = onChange; this.onStatus = onStatus; this.images = new Map(); this.enabled = false; this.user = null; this.events = null; this.timer = null; this.kind = 'node'; this.backendId = location.origin; }
   async request(path, options = {}) {
     const controller = new AbortController(), timer = setTimeout(() => controller.abort(), 20000);
     try {

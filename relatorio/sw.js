@@ -1,5 +1,5 @@
-const CACHE = 'field-report-v2';
-const ASSETS = ['./', './index.html', './report.js', './report.css', './library.js', './sync.js'];
+const CACHE = 'field-report-v2-1';
+const ASSETS = ['./', './index.html', './report.js', './report.css', './library.js', './sync.js', './cloud-config.js', './supabase-vendor.js', './supabase-sync.js'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS))));
 self.addEventListener('activate', event => event.waitUntil(Promise.all([
   caches.keys().then(keys => Promise.all(keys.filter(key => key.startsWith('field-report-') && key !== CACHE).map(key => caches.delete(key)))),

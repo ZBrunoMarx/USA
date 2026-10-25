@@ -16,7 +16,8 @@ let cloudData = null, remoteReports = [], syncTimer, publishing = false, conflic
 let syncError = '', queueRunning = false;
 const inFlightRecords = new Set();
 let libraryList = [], cloudAvailable = false, remoteRefreshing = false;
-const sync = new FieldReportSync(change => refreshShared(change), text => { $('#connection-status').textContent = text; });
+const SyncProvider = globalThis.FIELD_REPORT_CLOUD?.provider === 'supabase' ? FieldReportSupabaseSync : FieldReportSync;
+const sync = SyncProvider === FieldReportSync ? new SyncProvider(change => refreshShared(change), text => { $('#connection-status').textContent = text; }) : new SyncProvider(globalThis.FIELD_REPORT_CLOUD, change => refreshShared(change), text => { $('#connection-status').textContent = text; });
 const urls = new Set();
 const canEdit = () => cloud?.canEdit !== false;
 const lockFields = () => { fields.disabled = busy || importing || !canEdit() || recordStatus === 'archived'; };
@@ -382,6 +383,8 @@ async function removeRecord(id) {
 }
 function refreshCloudControls() {
   $('#cloud-tools').hidden = !cloudData;
+  $('#create-cloud-job').hidden = !cloudData || cloudData.user.role !== 'admin' || sync.kind !== 'supabase';
+  $('#company-app-link').hidden = sync.kind === 'supabase';
   if (!cloudData) return;
   const selected = cloud?.jobId || $('#cloud-job').value;
   $('#cloud-job').innerHTML = '<option value="">Selecione uma obra</option>' + cloudData.jobs.filter(job => job.status !== 'delivered' || job.id === selected).map(job => '<option value="' + escapeHTML(job.id) + '">' + escapeHTML(job.name) + '</option>').join('');
@@ -400,12 +403,12 @@ async function flushPending() {
   queueRunning = true; update();
   try {
     for (const item of await library.list()) {
-      if (item.id === recordId || !item.cloud?.dirty || item.cloud.conflict || inFlightRecords.has(item.id) || (cloudData.user.role !== 'admin' && item.cloud.ownerId !== cloudData.user.id)) continue;
+      if (item.id === recordId || !item.cloud?.dirty || item.cloud.conflict || (item.cloud.backendId && item.cloud.backendId !== sync.backendId) || inFlightRecords.has(item.id) || (cloudData.user.role !== 'admin' && item.cloud.ownerId !== cloudData.user.id)) continue;
       inFlightRecords.add(item.id);
       try {
         const sent = await library.get(item.id);
         const result = await sync.publish(sent, sent.cloud.jobId);
-        await library.synced(item.id, sent.localRevision, { jobId: result.jobId, revision: result.revision, ownerId: result.ownerId, canEdit: result.canEdit, syncedAt: result.updatedAt });
+        await library.synced(item.id, sent.localRevision, { jobId: result.jobId, revision: result.revision, ownerId: result.ownerId, canEdit: result.canEdit, syncedAt: result.updatedAt, backendId: sync.backendId });
       } catch (error) {
         if (error.status === 409) { const latest = await library.get(item.id); if (latest) { latest.cloud.conflict = true; await library.save(latest, latest.localRevision); } }
         if (error.status === 401 || !navigator.onLine) break;
@@ -420,10 +423,11 @@ function scheduleSync() {
 }
 async function publishRecord(explicit = true) {
   if (!cloudData || publishing || busy || importing || conflict || !canEdit()) { if (!explicit) scheduleSync(); return; }
+  if (cloud?.backendId && cloud.backendId !== sync.backendId) { if (explicit) message('Este registro pertence a outro projeto. Exporte uma cópia JSON e abra-a como um novo serviço antes de publicar aqui.', true); return; }
   const jobId = cloud?.jobId || $('#cloud-job').value;
   if (!jobId || !values().title.trim()) { if (explicit) message('Informe o nome do serviço e selecione a obra para publicar.', true); return; }
   if (!navigator.onLine) { $('#sync-status').textContent = 'Sem conexão · alterações guardadas no aparelho'; return; }
-  if (!cloud) cloud = { jobId, revision: 0, ownerId: cloudData.user.id, canEdit: true, dirty: true };
+  if (!cloud) cloud = { jobId, revision: 0, ownerId: cloudData.user.id, canEdit: true, dirty: true, backendId: sync.backendId };
   syncError = ''; publishing = true; clearTimeout(syncTimer); refreshCloudControls();
   try {
     if (!await saveNow()) throw new Error('Salve uma cópia antes de continuar.');
@@ -431,7 +435,7 @@ async function publishRecord(explicit = true) {
     const sent = await library.get(recordId), id = recordId;
     const result = await sync.publish(sent, jobId);
     await saveChain;
-    const synced = await library.synced(id, sent.localRevision, { jobId, revision: result.revision, ownerId: result.ownerId, canEdit: result.canEdit, syncedAt: result.updatedAt });
+    const synced = await library.synced(id, sent.localRevision, { jobId, revision: result.revision, ownerId: result.ownerId, canEdit: result.canEdit, syncedAt: result.updatedAt, backendId: sync.backendId });
     if (recordId === id) { cloud = synced.cloud; localRevision = synced.localRevision; if (contentKey(snapshot()) !== contentKey(sent)) { cloud.dirty = true; await saveNow(); } }
     if (explicit) message('Atualização salva no servidor da companhia.');
   } catch (error) {
@@ -471,13 +475,21 @@ async function enterShared() {
   scheduleSync(); void flushPending();
 }
 async function startShared() {
-  cloudAvailable = await sync.detect();
+  try { cloudAvailable = await sync.detect(); } catch (error) { $('#connection-status').textContent = error.message; return; }
   if (!cloudAvailable) { $('#connection-description').textContent = cloud ? 'Sem acesso ao servidor: este serviço permanece neste aparelho. As alterações aguardam conexão e login para envio.' : 'Modo local: serviços e fotos ficam neste navegador, separados por registro. Este link ainda não compartilha atualizações entre aparelhos. Salve uma cópia antes de remover dados locais.'; return; }
   $('#connection-title').textContent = 'Acesse sua companhia'; $('#connection-description').textContent = 'Entre para compartilhar fotos e acompanhar as atualizações das obras.';
+  if (sync.kind === 'supabase') { $('#login-label').textContent = 'Seu e-mail'; $('#cloud-login').elements.login.type = 'email'; }
   $('#cloud-login').hidden = false;
-  try { await enterShared(); } catch { $('#connection-status').textContent = 'Entre com seu ID e senha.'; }
+  try { await enterShared(); } catch (error) { $('#connection-status').textContent = error.status === 401 ? (sync.kind === 'supabase' ? 'Entre com seu e-mail e senha.' : 'Entre com seu ID e senha.') : error.message; }
 }
 function wireWorkspace() {
+  $('#create-cloud-job').onclick = () => { $('#cloud-job-form').reset(); $('#job-form-status').textContent = ''; $('#job-dialog').showModal(); };
+  $('#cancel-cloud-job').onclick = () => $('#job-dialog').close();
+  $('#cloud-job-form').onsubmit = event => { event.preventDefault(); void runTask(async () => {
+    const form = $('#cloud-job-form'), button = form.querySelector('[type=submit]'); button.disabled = true; $('#job-form-status').textContent = 'Salvando obra…';
+    try { const job = await sync.createJob(form.elements.name.value, form.elements.address.value); await refreshShared(); $('#cloud-job').value = job.id; $('#job-dialog').close(); message('Obra cadastrada. Agora você pode vincular o serviço e publicar as fotos.'); }
+    catch (error) { $('#job-form-status').textContent = error.message; } finally { button.disabled = false; }
+  }); };
   $('#show-services').onclick = $('#save-service').onclick = () => void runTask(showLibrary);
   $('#new-service').onclick = () => void runTask(() => newRecord(false));
   $('#service-search').oninput = $('#service-filter').onchange = $('#service-job').onchange = () => void runTask(renderLibrary);

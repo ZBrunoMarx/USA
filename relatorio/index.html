@@ -6,12 +6,15 @@
   <meta name="theme-color" content="#112931">
   <title>Relatório do dia · Field Report</title>
   <link rel="stylesheet" href="./report.css">
+  <script defer src="./cloud-config.js"></script>
   <script defer src="./library.js"></script>
   <script defer src="./sync.js"></script>
+  <script defer src="./supabase-vendor.js"></script>
+  <script defer src="./supabase-sync.js"></script>
   <script defer src="./report.js"></script>
 </head>
 <body>
-  <header class="top"><strong>FIELD REPORT</strong><span>SEUS SERVIÇOS · v2</span></header>
+  <header class="top"><strong>FIELD REPORT</strong><span>SEUS SERVIÇOS · v2.1</span></header>
   <main>
     <section class="intro">
       <span class="eyebrow">DO PRIMEIRO REGISTRO À ENTREGA</span>
@@ -26,10 +29,10 @@
       <h2 id="connection-title">Registros neste aparelho</h2>
       <p id="connection-description">Cada serviço tem seu próprio registro. O acesso compartilhado precisa da versão com servidor e login; este link pode funcionar somente neste navegador.</p>
       <form id="cloud-login" hidden>
-        <div class="row"><label>Seu ID<input name="login" autocomplete="username" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" required></label></div>
+        <div class="row"><label><span id="login-label">Seu ID</span><input name="login" autocomplete="username" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" required></label></div>
         <button class="primary" type="submit">Entrar na companhia</button>
       </form>
-      <div id="cloud-account" hidden><span id="cloud-user"></span><a class="button secondary" href="/">Obras e equipe</a><button id="cloud-logout" class="secondary" type="button">Sair e limpar dados compartilhados deste aparelho</button></div>
+      <div id="cloud-account" hidden><span id="cloud-user"></span><a id="company-app-link" class="button secondary" href="/">Obras e equipe</a><button id="create-cloud-job" type="button" class="secondary" hidden>Nova obra</button><button id="cloud-logout" class="secondary" type="button">Sair e limpar dados compartilhados deste aparelho</button></div>
       <p id="connection-status" class="hint" role="status"></p>
     </section>
 
@@ -118,5 +121,6 @@
     <p id="message" class="notice" role="status" aria-live="polite" hidden></p>
     <footer>Field Report · registro do trabalho, sem aprovação técnica automática.</footer>
   </main>
+  <dialog id="job-dialog"><form id="cloud-job-form"><h2>Nova obra</h2><p>Um nome para a equipe reconhecer onde está trabalhando.</p><label>Nome da obra<input name="name" maxlength="160" required></label><label>Endereço <span class="optional">opcional</span><input name="address" maxlength="300"></label><p id="job-form-status" class="hint" role="status"></p><div class="actions"><button type="button" id="cancel-cloud-job" class="secondary">Cancelar</button><button type="submit" class="primary">Salvar obra</button></div></form></dialog>
 </body>
 </html>
