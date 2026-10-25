@@ -8,7 +8,7 @@ const groups = [
 ];
 const names = ['title', 'date', 'author', 'scope', 'language', 'percent', 'company', 'completed', 'remaining'];
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
-const defaults = () => ({ title: '', date: today(), author: 'Bruno', scope: 'Grouting', language: 'en', percent: '', company: '', completed: '', remaining: '' });
+const defaults = () => ({ title: '', date: today(), author: cloudData?.user?.name || 'Bruno', scope: 'Grouting', language: 'en', percent: '', company: '', completed: '', remaining: '' });
 let photos = { before: [], after: [], pending: [] }, logo = null, library = null, saveTimer, saveChain = Promise.resolve();
 let busy = false, importing = false, controller = null, videoFile = null, videoURL = null, wakeLock = null;
 let recordId = crypto.randomUUID(), localRevision = 0, recordStatus = 'active', cloud = null;
@@ -468,6 +468,7 @@ async function enterShared() {
   $('#cloud-login').hidden = true; $('#cloud-account').hidden = false; $('#cloud-user').textContent = cloudData.user.name;
   $('#connection-title').textContent = 'Registros da companhia'; $('#connection-description').textContent = 'Usuários autenticados desta companhia acompanham as mesmas obras. Cada profissional publica seus registros; administradores podem revisar e editar.';
   if (cloud) cloud.canEdit = cloudData.user.role === 'admin' || cloud.ownerId === cloudData.user.id;
+  if (!values().title.trim() && !countPhotos() && !values().completed && !values().remaining) { form.elements.author.value = cloudData.user.name; await saveNow(); }
   refreshCloudControls(); sync.watch();
   const requested = new URLSearchParams(location.search).get('report'); if (requested && remoteReports.some(item => item.id === requested)) await openRecord(requested);
   const requestedJob = new URLSearchParams(location.search).get('job');
