@@ -4,22 +4,23 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#112931">
-  <title>Relatório do dia · Field Report</title>
+  <title>Obras e execução · Field Report</title>
   <link rel="stylesheet" href="./report.css">
   <script defer src="./cloud-config.js"></script>
   <script defer src="./library.js"></script>
   <script defer src="./sync.js"></script>
   <script defer src="./supabase-vendor.js"></script>
   <script defer src="./supabase-sync.js"></script>
+  <script defer src="./workspace.js"></script>
   <script defer src="./report.js"></script>
 </head>
 <body>
-  <header class="top"><strong>FIELD REPORT</strong><span>SEUS SERVIÇOS · v2.2</span></header>
+  <header class="top"><strong>FIELD REPORT</strong><span>OBRAS E EXECUÇÃO · v3.0</span></header>
   <main>
     <section class="intro">
-      <span class="eyebrow">DO PRIMEIRO REGISTRO À ENTREGA</span>
-      <h1>Seu dia de trabalho.<br>Pronto para mostrar.</h1>
-      <p>Guarde cada serviço, acompanhe os registros e prepare o vídeo da entrega.</p>
+      <span class="eyebrow">DA OBRA AO REGISTRO DO DIA</span>
+      <h1>Obras organizadas.<br>Equipe em movimento.</h1>
+      <p>Veja o que está previsto, registre o trabalho e acompanhe cada entrega.</p>
       <div class="status-row"><span id="save-status" role="status" aria-live="polite">Abrindo seu rascunho…</span><span id="offline-status">Verificando acesso sem conexão…</span></div>
       <div id="update-notice" class="notice" hidden>Há uma atualização disponível. <button id="apply-update" type="button">Atualizar a página</button></div>
       <p id="storage-warning" class="notice error" hidden></p>
@@ -33,11 +34,14 @@
         <button class="primary" type="submit">Entrar na companhia</button>
       </form>
       <div id="cloud-account" hidden><span id="cloud-user"></span><a id="company-app-link" class="button secondary" href="/">Obras e equipe</a><button id="create-cloud-job" type="button" class="secondary" hidden>Nova obra</button><button id="cloud-logout" class="secondary" type="button">Sair e limpar dados compartilhados deste aparelho</button></div>
-      <p id="connection-status" class="hint" role="status"></p>
+      <button id="signup-access" type="button" class="secondary" hidden>Criar meu acesso</button><p id="connection-status" class="hint" role="status"></p>
     </section>
 
+    <nav id="workspace-nav" class="workspace-nav" aria-label="Navegação da companhia" hidden><button id="nav-jobs" type="button" class="primary">Obras</button><button id="nav-reports" type="button" class="secondary">Registros</button><button id="nav-team" type="button" class="secondary" hidden>Equipe</button><button id="nav-settings" type="button" class="secondary" hidden>Companhia</button></nav>
+    <section id="job-workspace" hidden aria-live="polite"></section>
+
     <section id="service-library" class="card" hidden>
-      <div class="section-title"><span class="step">↗</span><div><h2>Seus serviços</h2><p>Troque de serviço sem apagar o anterior.</p></div></div>
+      <div class="section-title"><span class="step">↗</span><div><h2>Registros diários</h2><p>Histórico das fotos e relatos. Registros anteriores foram preservados.</p></div></div>
       <button id="new-service" type="button" class="primary">Novo serviço</button>
       <div class="row"><label>Buscar serviço<input id="service-search" type="search" placeholder="Nome ou ambiente"></label><label>Mostrar<select id="service-filter"><option value="active">Em andamento</option><option value="archived">Arquivados</option><option value="all">Todos</option></select></label></div>
       <label id="service-job-label" hidden>Obra<select id="service-job"><option value="">Todas as obras e registros locais</option></select></label>
@@ -45,10 +49,13 @@
     </section>
 
     <div id="editor">
-    <div class="editor-navigation"><button id="show-services" type="button" class="secondary">← Serviços</button><span id="record-state" class="hint"></span></div>
+    <div class="editor-navigation"><button id="show-services" type="button" class="secondary">← Registros</button><span id="record-state" class="hint"></span></div>
     <section class="card" id="cloud-tools" hidden>
       <h2>Atualização da obra</h2>
       <label>Obra da companhia<select id="cloud-job"><option value="">Selecione uma obra</option></select></label>
+      <label id="task-binding-label" hidden>Serviço previsto<select id="report-task"><option value="">Selecione o serviço</option></select></label>
+      <p id="task-instructions" class="notice" hidden></p>
+      <label id="complete-task-label" class="check" hidden><input id="complete-task" type="checkbox">Concluir este serviço com este envio</label><p id="completion-hint" class="hint" hidden>Para dar o check: 100%, uma foto final e nenhuma pendência. Finalizar o dia não conclui o serviço automaticamente.</p>
       <p id="sync-status" class="hint" role="status"></p>
       <p id="readonly-notice" class="notice" hidden>Você está consultando o relatório de outro profissional. Pode ver as fotos e gerar o vídeo.</p>
       <div class="actions"><button id="publish-report" type="button" class="primary">Publicar atualização</button><button id="reload-remote" type="button" class="secondary" hidden>Preservar cópia e abrir versão do servidor</button></div>
@@ -57,7 +64,7 @@
     <form id="report-form">
       <fieldset id="report-fields" disabled>
         <section class="card">
-          <div class="section-title"><span class="step">01</span><div><h2>Identifique o trabalho</h2><p>Só o necessário para acompanhar o vídeo.</p></div></div>
+          <div class="section-title"><span class="step">01</span><div><h2>Identifique o trabalho</h2><p>A obra e o serviço vêm do planejamento. Você registra a execução.</p></div></div>
           <label>Nome da obra ou do serviço<input name="title" maxlength="70" required placeholder="Grout · banheiro da casa"></label>
           <div class="row">
             <label>Data do trabalho<input name="date" type="date" required></label>
@@ -70,10 +77,10 @@
             <label>Conclusão deste serviço (%) <span class="optional">opcional</span><input name="percent" type="number" min="0" max="100" step="1" inputmode="numeric" placeholder="Ex.: 80"></label>
           </div>
           <p class="hint">O percentual é sua estimativa para o serviço indicado acima. Não é uma medição por IA nem a conclusão da obra inteira.</p>
-          <label>Empresa responsável <span class="optional">opcional</span><input name="company" maxlength="55" placeholder="Nome da empresa do seu chefe"></label>
-          <label>Logo da empresa <span class="optional">opcional</span><input id="company-logo" type="file" accept="image/*,.heic,.heif"></label>
-          <div id="logo-preview"></div><button id="remove-logo" type="button" class="secondary" hidden>Remover logo</button>
-          <p class="hint">Use uma imagem recortada da logo, se tiver. Sem logo, o vídeo terá identificação neutra. Nenhuma marca de outra empresa será acrescentada.</p>
+          <label data-personal-branding>Empresa responsável <span class="optional">opcional</span><input name="company" maxlength="55" placeholder="Nome da empresa do seu chefe"></label>
+          <label data-personal-branding>Logo da empresa <span class="optional">opcional</span><input id="company-logo" type="file" accept="image/*,.heic,.heif"></label>
+          <div data-personal-branding id="logo-preview"></div><button data-personal-branding id="remove-logo" type="button" class="secondary" hidden>Remover logo</button>
+          <p data-personal-branding class="hint">Use uma imagem recortada da logo, se tiver. Sem logo, o vídeo terá identificação neutra. Nenhuma marca de outra empresa será acrescentada.</p>
         </section>
 
         <section class="card">
@@ -114,13 +121,14 @@
       <h2>Guarde seu registro</h2>
       <p id="storage-explanation">Os serviços ficam separados neste navegador. Você pode sair de um e abrir outro. No modo local, salve uma cópia antes de remover as fotos do aparelho. Esta página não analisa fotos por IA.</p>
       <div class="actions"><button id="backup" class="secondary" type="button" disabled>Salvar cópia do registro</button><label class="button secondary" for="restore">Abrir cópia salva<input id="restore" type="file" accept="application/json,.json" hidden></label></div>
-      <div class="actions"><button id="save-service" class="primary" type="button" disabled>Salvar e voltar aos serviços</button><button id="new-report" class="secondary" type="button" disabled>Novo relatório</button><button id="archive-report" class="secondary" type="button" disabled>Arquivar serviço</button><button id="remove-local" class="secondary danger" type="button" disabled>Remover deste aparelho</button></div>
+      <div class="actions"><button id="save-service" class="primary" type="button" disabled>Salvar e voltar à obra</button><button id="new-report" class="secondary" type="button" disabled>Novo relatório</button><button id="archive-report" class="secondary" type="button" disabled>Arquivar serviço</button><button id="remove-local" class="secondary danger" type="button" disabled>Remover deste aparelho</button></div>
       <p class="hint">Use a mesma URL e o mesmo Safari de manhã e no fim do dia. Esta página poderá ser atualizada sem instalar outro app. O MP4 exportado precisa ser salvo ou compartilhado por você.</p>
     </section>
     </div>
     <p id="message" class="notice" role="status" aria-live="polite" hidden></p>
     <footer>Field Report · registro do trabalho, sem aprovação técnica automática.</footer>
   </main>
-  <dialog id="job-dialog"><form id="cloud-job-form"><h2>Nova obra</h2><p>Um nome para a equipe reconhecer onde está trabalhando.</p><label>Nome da obra<input name="name" maxlength="160" required></label><label>Endereço <span class="optional">opcional</span><input name="address" maxlength="300"></label><p id="job-form-status" class="hint" role="status"></p><div class="actions"><button type="button" id="cancel-cloud-job" class="secondary">Cancelar</button><button type="submit" class="primary">Salvar obra</button></div></form></dialog>
+  <dialog id="job-dialog"><form id="cloud-job-form"><h2>Nova obra</h2><p>Um nome para a equipe reconhecer onde está trabalhando.</p><label>Nome da obra<input name="name" maxlength="160" required></label><label>Endereço <span class="optional">opcional</span><input name="address" maxlength="300"></label><label>Tipo de contratação<select name="kind"><option value="installation">Instalação</option><option value="repair">Reparo contratado</option></select></label><h3>Serviços previstos</h3><p class="hint">Inclua apenas o que foi contratado. Reparo contratado é diferente de um retorno para ajuste de obra já entregue.</p><div id="job-planned-tasks"></div><button id="add-planned-task" type="button" class="secondary">Adicionar serviço / ambiente</button><p id="job-form-status" class="hint" role="status"></p><div class="actions"><button type="button" id="cancel-cloud-job" class="secondary">Cancelar</button><button type="submit" class="primary">Salvar obra</button></div></form></dialog>
+  <dialog id="workspace-dialog"><form id="workspace-form"></form></dialog>
 </body>
 </html>

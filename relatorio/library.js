@@ -43,7 +43,7 @@ globalThis.FieldReportLibrary = class {
     return this.transaction(['reports', 'index'], 'readwrite', (tx, done) => {
       tx.objectStore('reports').get(id).onsuccess = event => {
         const current = event.target.result; if (!current) return;
-        current.cloud = { ...cloud, dirty: current.localRevision !== sentRevision };
+        current.cloud = { ...cloud, ...(current.localRevision !== sentRevision ? { taskId: current.cloud?.taskId, taskCycle: current.cloud?.taskCycle, complete: current.cloud?.complete } : {}), dirty: current.localRevision !== sentRevision };
         tx.objectStore('reports').put(current, id); tx.objectStore('index').put(this.summary(current), id); done(current);
       };
     });
