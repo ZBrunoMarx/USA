@@ -1,0 +1,8 @@
+**
+!package.json
+!package-lock.json
+!server.mjs
+!auth.mjs
+!vision.mjs
+!public/
+!public/**

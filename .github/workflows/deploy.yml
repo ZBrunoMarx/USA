@@ -1,0 +1,93 @@
+name: Validate and deploy Field Report
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: field-report-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+      - name: Validate immutable migrations
+        run: npm run check:migrations
+        env:
+          MIGRATION_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+      - run: npm test
+      - name: Test migration history against isolated PostgreSQL
+        run: node scripts/test-migration-cli.mjs
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:ci-browser
+      - name: Regenerate setup helpers and pinned browser SDK
+        run: |
+          node scripts/build-cloud-setup.mjs
+          node scripts/build-supabase-browser.mjs
+          git diff --exit-code -- public/relatorio
+      - run: npm run build:pages
+      - name: Upload static site artifact
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: .local/pages
+
+  deploy:
+    if: github.event_name != 'pull_request'
+    needs: validate
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    environment:
+      name: production
+      url: ${{ steps.pages.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Check one-time deployment setup
+        id: setup
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -n "$SUPABASE_DB_URL" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "Deploy pendente: cadastre SUPABASE_DB_URL e configure Pages para GitHub Actions. Consulte deploy/CI-CD.md. O site atual foi preservado." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - uses: actions/checkout@v5
+        if: steps.setup.outputs.ready == 'true'
+      - uses: actions/setup-node@v5
+        if: steps.setup.outputs.ready == 'true'
+        with:
+          node-version: '24'
+          cache: npm
+      - run: npm ci --no-audit --no-fund
+        if: steps.setup.outputs.ready == 'true'
+      - name: Apply pending database migrations before publishing
+        if: steps.setup.outputs.ready == 'true'
+        run: npm run db:deploy
+        env:
+          SUPABASE_PROJECT_REF: rzmhubdajnblxgwcoolt
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      - name: Publish validated site
+        if: steps.setup.outputs.ready == 'true'
+        id: pages
+        uses: actions/deploy-pages@v4

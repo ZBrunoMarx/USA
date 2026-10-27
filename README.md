@@ -1,19 +1,30 @@
-# Skytile — demonstração gratuita
+# Field Report / Skytile
 
-Versão independente para teste no Safari do iPhone. As obras DEMO e os valores são fictícios.
+Sistema de obras e registros diários, com fotos, andamento por serviço, equipe e vídeo MP4 no próprio telefone.
 
-Os registros e as fotos ficam somente no navegador do aparelho. Não existe sincronização entre usuários nem análise de IA ativada. Os perfis são simulados. Apagar os dados do site no aparelho apaga os registros daquele navegador.
+Aplicativo gratuito publicado: https://zbrunomarx.github.io/USA/relatorio/ . O módulo usa GitHub Pages + Supabase Free. O backend Node de gestão, finanças e análise visual também está versionado para desenvolvimento local; esse backend não é executado pelo GitHub Pages.
 
-No Render, crie um Static Site a partir da branch skytile-demo. Build command: test -s index.html. Publish directory: .
+## Desenvolvimento
 
-O render.yaml também prepara um Static Site via Blueprint, sem servidor ou disco pagos. Confira que o painel apresenta somente o Static Site antes de implantar.
+```sh
+npm ci
+npm test
+npm start
+```
 
-Para testar: abrir a URL HTTPS no Safari, tocar numa obra, Registrar avanço, Tirar foto ou escolher da galeria, Salvar. A câmera física do iPhone ainda precisa de teste de campo.
+Node.js 24 é usado no CI. `npm start` abre o ambiente Node local; o frontend público de relatórios usa a configuração Supabase somente na origem configurada em public/relatorio/cloud-config.js. Chaves privadas pertencem ao ambiente seguro, nunca ao frontend ou Git.
 
-## Relatório do dia com MP4
+## Publicação
 
-Abra https://skytile-demo.onrender.com/relatorio/ no Safari do iPhone. Registre fotos de início, fim e pendências, a estimativa manual de conclusão do serviço e a empresa responsável. A identidade do vídeo é neutra; nome e logo da empresa podem ser adicionados pelo usuário.
+`main → testes → migrações pendentes → site`. A configuração única, os links de secrets e as instruções de operação ficam em [deploy/CI-CD.md](deploy/CI-CD.md).
 
-A exportação gera MP4 vertical H.264 no navegador, com transições e texto em inglês ou português. Não faz análise por IA, não envia fotos ao servidor e não precisa de chave da API. O suporte do Safari físico precisa ser testado no aparelho antes do trabalho de campo. Durante a geração, mantenha a página em primeiro plano.
+- Frontend: public/relatorio/.
+- Banco: supabase/migrations/; cada nova alteração tem um novo timestamp, sem editar versões publicadas.
+- Workflow: .github/workflows/deploy.yml.
+- Testes: tests/ e scripts/test-*.mjs.
+- Artefato público: `npm run build:pages`, em .local/pages; somente o módulo estático aprovado.
+- SQL anterior/manual: deploy/supabase/, mantido como referência histórica.
 
-O rascunho fica neste navegador e aparelho. Há cópia de segurança em JSON, restauração e acesso sem conexão após a primeira abertura bem-sucedida. Salve ou compartilhe o MP4 depois de gerar. Esse módulo não sincroniza registros entre aparelhos.
+A primeira migração automatizada adota o banco existente sem recriar contas, obras ou fotos. Secrets de produção são usados apenas no job de deploy; PRs testam sem esses acessos. Enquanto a configuração inicial não estiver concluída, o workflow registra o deploy pendente e preserva a publicação atual.
+
+O percentual é informado pela equipe, sem certificação técnica por fotos. O MP4 é produzido pelo navegador, sem dependência de API de IA. A análise GPT do backend é uma integração separada e exige uma chave privada e conta de API configuradas.

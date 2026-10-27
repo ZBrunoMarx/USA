@@ -1,0 +1,64 @@
+import {chromium} from 'playwright';
+import assert from 'node:assert/strict';
+import {spawn,execFile} from 'node:child_process';
+import {promisify} from 'node:util';
+import {mkdtempSync,readFileSync,rmSync,mkdirSync} from 'node:fs';
+import {tmpdir} from 'node:os';import {join} from 'node:path';import {fileURLToPath} from 'node:url';import {once} from 'node:events';import http from 'node:http';
+const root=fileURLToPath(new URL('..',import.meta.url));const temp=mkdtempSync(join(tmpdir(),'skytile-cost-ui-'));
+const child=spawn(process.execPath,['server.mjs'],{cwd:root,env:{...process.env, NODE_ENV:'test', SKYTILE_AUTH:'demo', SKYTILE_PUBLIC_ORIGIN:'', SKYTILE_BOOTSTRAP_PASSWORD:'',SKYTILE_AI_KEY:'',OPENAI_API_KEY:'',PORT:'0',SKYTILE_DATA_DIR:temp}});let browser,preview;
+try{
+ const base=await new Promise((resolve,reject)=>{const timer=setTimeout(()=>reject(new Error('Server startup timeout')),10000);child.stdout.on('data',b=>{const m=b.toString().match(/http:\/\/127\.0\.0\.1:\d+/);if(m){clearTimeout(timer);resolve(m[0])}});child.once('error',reject)});
+ const html=join(temp,'preview.html');await promisify(execFile)(process.execPath,['scripts/build-preview.mjs'],{cwd:root,env:{...process.env, NODE_ENV:'test', SKYTILE_AUTH:'demo', SKYTILE_PUBLIC_ORIGIN:'', SKYTILE_BOOTSTRAP_PASSWORD:'',SKYTILE_PREVIEW_SOURCE:base,SKYTILE_PREVIEW_OUTPUT:html}});
+ preview=http.createServer((req,res)=>{res.writeHead(200,{'Content-Type':'text/html;charset=utf-8'});res.end(readFileSync(html))});await new Promise(r=>preview.listen(0,'127.0.0.1',r));
+ browser=await chromium.launch({...(process.env.SKYTILE_CHROMIUM?{executablePath:process.env.SKYTILE_CHROMIUM}:{}),args:['--no-sandbox']});
+ for(const [mode,url] of [['server',base],['HTML',`http://127.0.0.1:${preview.address().port}`]]){
+  const context=await browser.newContext({viewport:{width:1440,height:1000}});const page=await context.newPage();const errors=[];page.on('pageerror',e=>errors.push(e.message));
+  const heading=(name)=>page.getByRole('heading',{name,exact:true,level:1});
+  const metric=(name)=>page.locator('.cost-metric').filter({has:page.locator('span').filter({hasText:new RegExp('^'+name+'$')})}).locator('strong');
+  const dialogButton=(name)=>page.locator('[role=dialog]').getByRole('button',{name,exact:true});
+  await page.goto(url);await heading('Cada obra, um passo à frente.').waitFor();
+  await page.getByRole('button',{name:'Nova obra',exact:true}).click();await page.locator('[name=name]').fill('Piloto de custos');await page.locator('[name=address]').fill('Newark, NJ');
+  await page.getByRole('button',{name:'Criar obra'}).click();await heading('Piloto de custos').waitFor();const jobURL=page.url(),jobId=jobURL.split('#jobs/')[1];
+  assert.match(await metric('Valor contratado').innerText(),/Não informado/);assert.match(await metric('Gasto confirmado').innerText(),/0,00/);
+  const today=await page.evaluate(()=>state.today);const dateOffset=(n)=>{const d=new Date(today+'T12:00:00Z');d.setUTCDate(d.getUTCDate()+n);return d.toISOString().slice(0,10)};
+  const settings=async(remaining='3400',finish=dateOffset(4))=>{
+   await page.getByRole('button',{name:'Valores e prazo',exact:true}).click();await page.locator('[name=contractCents]').fill('10000');await page.locator('[name=budgetCents]').fill('7000');
+   await page.locator('[name=remainingCents]').fill(remaining);await page.locator('[name=deadline]').fill(dateOffset(3));await page.locator('[name=expectedFinish]').fill(finish);await page.getByRole('button',{name:'Salvar valores e prazo'}).click();await page.locator('[role=dialog]').waitFor({state:'hidden'});
+  };
+  await settings();assert.match(await page.locator('.schedule-strip').innerText(),/Risco de atraso/);
+  await page.getByRole('button',{name:'Registrar gasto',exact:true}).click();await page.locator('[name=amountCents]').fill('4200');await page.locator('[name=note]').fill('Materiais de teste');await page.getByRole('button',{name:'Salvar gasto',exact:true}).click();await page.locator('[role=dialog]').waitFor({state:'hidden'});
+  assert.match(await metric('Gasto confirmado').innerText(),/4\.200,00/);assert.match(await page.locator('.cost-status').innerText(),/Revise/);
+  await settings();assert.match(await metric('Custo final previsto').innerText(),/7\.600,00/);assert.match(await page.locator('.cost-status').innerText(),/excede/);
+  await page.locator('.sidebar').getByRole('link',{name:'Equipe diária'}).click();await page.getByRole('button',{name:'Editar Jonny'}).click();await page.locator('[name=dailyRateCents]').fill('250');await page.getByRole('button',{name:'Salvar profissional'}).click();await page.locator('[role=dialog]').waitFor({state:'hidden'});
+  await page.locator('.team-card').filter({hasText:'Piloto de custos'}).getByRole('link',{name:'Piloto de custos',exact:true}).click();await heading('Piloto de custos').waitFor();
+  await page.getByRole('button',{name:'Definir equipe',exact:true}).click();await page.locator('[name=userIds][value=johnny]').check();await page.getByRole('button',{name:'Salvar equipe'}).click();await page.locator('.person-chip').filter({hasText:'Jonny'}).waitFor();
+  const labor=async()=>{await page.getByRole('button',{name:'Confirmar diárias'}).click();const row=page.locator('.labor-person[data-user=johnny]');assert.equal(await row.locator('.labor-rate').inputValue(),'250.00');assert.equal(await row.locator('.labor-selected').isChecked(),true);await page.getByRole('button',{name:'Salvar diárias'}).click();await page.locator('[role=dialog]').waitFor({state:'hidden'})};
+  await labor();assert.match(await metric('Gasto confirmado').innerText(),/4\.450,00/);await labor();assert.match(await metric('Gasto confirmado').innerText(),/4\.450,00/);
+  await page.locator('.sidebar').getByRole('link',{name:'Equipe diária'}).click();await page.getByRole('button',{name:'Editar Jonny'}).click();await page.locator('[name=dailyRateCents]').fill('300');await page.getByRole('button',{name:'Salvar profissional'}).click();await page.locator('[role=dialog]').waitFor({state:'hidden'});
+  await page.locator('.team-card').filter({hasText:'Piloto de custos'}).getByRole('link',{name:'Piloto de custos',exact:true}).click();await heading('Piloto de custos').waitFor();assert.match(await metric('Gasto confirmado').innerText(),/4\.450,00/);
+  await page.locator('#profile').selectOption('johnny');await page.locator('#finance-panel').waitFor({state:'hidden'});assert.equal(await page.getByRole('button',{name:'Valores e prazo'}).count(),0);
+  const publicState=await page.evaluate(()=>state);assert.equal(publicState.finance,undefined);assert.equal(publicState.jobs.find(j=>j.id===jobId).finance,undefined);
+  await page.getByRole('button',{name:'Registrar gasto',exact:true}).click();await page.locator('[name=amountCents]').fill('25,50');await page.locator('[name=category]').selectOption('parking');await page.locator('[name=note]').fill('Estacionamento do piloto');
+  await page.locator('#expense-receipt').setInputFiles({name:'parking.png',mimeType:'image/png',buffer:Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aI9sAAAAASUVORK5CYII=','base64')});
+  await page.getByRole('button',{name:'Enviar gasto',exact:true}).click();await page.locator('.expense-row').filter({hasText:'Estacionamento do piloto'}).waitFor();assert.match(await page.locator('.expense-row').innerText(),/Aguardando conferência/);
+  await page.locator('#profile').selectOption('bruno');await page.locator('.expense-row').waitFor({state:'hidden'});
+  await page.locator('#profile').selectOption('thiago');await page.locator('#finance-panel').waitFor();assert.match(await metric('Aguardando conferência').innerText(),/25,50/);
+  await page.locator('.finance-details').filter({hasText:'Gastos e comprovantes'}).locator('summary').first().click();
+  await page.locator('.expense-row').filter({hasText:'Estacionamento do piloto'}).getByRole('button',{name:'Confirmar gasto'}).click();await dialogButton('Confirmar gasto').click();await page.locator('[role=dialog]').waitFor({state:'hidden'});assert.match(await metric('Gasto confirmado').innerText(),/4\.475,50/);
+  await page.locator('.finance-details').filter({hasText:'Gastos e comprovantes'}).locator('summary').first().click();
+  await page.locator('.expense-row').filter({hasText:'Estacionamento do piloto'}).getByRole('button',{name:'Anular'}).click();await page.locator('[name=reason]').fill('Lançamento duplicado no teste');await dialogButton('Anular gasto').click();await page.locator('[role=dialog]').waitFor({state:'hidden'});assert.match(await metric('Gasto confirmado').innerText(),/4\.450,00/);
+  await settings('1000',dateOffset(3));assert.match(await metric('Custo final previsto').innerText(),/5\.450,00/);assert.match(await page.locator('.schedule-strip').innerText(),/dentro do prazo/);
+  const rates=await page.evaluate(()=>state.finance.rates);assert.equal(rates.johnny,30000);
+  await page.reload();await heading('Piloto de custos').waitFor();assert.match(await metric('Gasto confirmado').innerText(),/4\.450,00/);
+  await page.getByRole('button',{name:'Marcar como entregue'}).click();await page.getByRole('button',{name:'Confirmar entrega',exact:true}).click();await page.getByRole('button',{name:'Reabrir para ajuste'}).waitFor();assert.match(await metric('Gasto confirmado').innerText(),/4\.450,00/);
+  await page.getByRole('button',{name:'Reabrir para ajuste'}).click();await page.locator('[name=reason]').fill('Ajuste sem apagar custos');await page.getByRole('button',{name:'Reabrir obra'}).click();await page.getByRole('button',{name:'Registrar avanço'}).waitFor();assert.match(await metric('Gasto confirmado').innerText(),/4\.450,00/);
+  mkdirSync(join(root,'.local'),{recursive:true});await page.screenshot({path:join(root,`.local/costs-${mode.toLowerCase()}.png`),fullPage:true});
+  await page.locator('.sidebar').getByRole('link',{name:'Assistente'}).click();await page.locator('#chat-job').selectOption(jobId);await page.locator('.chat-shortcuts').getByRole('button',{name:'Como estão os custos das obras?',exact:true}).click();await page.locator('.chat-answer').waitFor();assert.match(await page.locator('.chat-answer').innerText(),/4\.450,00/);
+  const count=await page.locator('.chat-answer').count();await page.locator('.chat-shortcuts').getByRole('button',{name:'Como estão os prazos?',exact:true}).click();await page.locator('.chat-answer').nth(count).waitFor();assert.match(await page.locator('.chat-answer').last().innerText(),/dentro do prazo/);
+  await page.locator('.source-links a').last().click();await heading('Piloto de custos').waitFor();
+  await page.setViewportSize({width:390,height:844});assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
+  await page.getByRole('button',{name:'Confirmar diárias'}).click();assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);await page.getByRole('button',{name:'Cancelar',exact:true}).click();
+  await page.screenshot({path:join(root,`.local/costs-mobile-${mode.toLowerCase()}.png`),fullPage:true});
+  assert.deepEqual(errors,[]);await context.close();console.log(`${mode}: PASS financial forms, forecasts, deadline risk, staff rates, attendance without double charging, worker receipt/conference, privacy, void/history, persistence, delivery/reopening, assistant and mobile.`);
+ }
+}finally{await browser?.close();if(preview)await new Promise(r=>preview.close(r));if(child.exitCode===null){const exited=once(child,'exit');child.kill('SIGTERM');await exited}rmSync(temp,{recursive:true,force:true})}

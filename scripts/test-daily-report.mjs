@@ -1,0 +1,102 @@
+import { chromium, devices } from 'playwright';
+import assert from 'node:assert/strict';
+import { spawn, execFileSync } from 'node:child_process';
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { once } from 'node:events';
+const root = new URL('..', import.meta.url), dir = mkdtempSync(join(tmpdir(), 'field-report-check-'));
+let child, browser;
+try {
+  child = spawn(process.execPath, ['server.mjs'], { cwd: root, env: { ...process.env, NODE_ENV: 'test', SKYTILE_AUTH: 'demo', SKYTILE_PUBLIC_ORIGIN: '', SKYTILE_BOOTSTRAP_PASSWORD: '', SKYTILE_AI_KEY: '', OPENAI_API_KEY: '', SKYTILE_DATA_DIR: dir, PORT: '0' } });
+  const base = await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('Startup timeout')), 10000);
+    child.stdout.on('data', chunk => { const match = chunk.toString().match(/http:\/\/127\.0\.0\.1:\d+/); if (match) { clearTimeout(timer); resolve(match[0]); } });
+    child.on('error', reject);
+  });
+  browser = await chromium.launch({ executablePath: process.env.SKYTILE_CHROMIUM || '/usr/bin/chromium', args: ['--no-sandbox'] });
+  const context = await browser.newContext({ ...devices['iPhone 13'], acceptDownloads: true });
+  const page = await context.newPage(), errors = [], forbiddenRequests = [];
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('request', request => { if (request.method() !== 'GET' || (request.url().includes('/api/') && !request.url().endsWith('/api/auth/session'))) forbiddenRequests.push(request.url()); });
+  await page.goto(base + '/relatorio/');
+  await page.locator('#report-fields').waitFor({ state: 'visible' });
+  await page.waitForFunction(() => !document.querySelector('#report-fields').disabled);
+  assert.equal(await page.getByText(/skytile/i).count(), 0);
+  await page.locator('[name=title]').fill('DEMO — Daily grout report');
+  await page.locator('[name=scope]').fill('Bathroom floor · grouting');
+  await page.locator('[name=company]').fill('EXAMPLE CONTRACTOR');
+  await page.locator('[name=percent]').fill('80');
+  await page.locator('[name=completed]').fill('Grout applied to the photographed floor area.');
+  await page.locator('[name=remaining]').fill('Doorway area and final cleanup.');
+  const image = async label => Buffer.from(await page.evaluate(label => {
+    const canvas = document.createElement('canvas'); canvas.width = 900; canvas.height = 650;
+    const c = canvas.getContext('2d'); c.fillStyle = label === 'BEFORE' ? '#b9b6a9' : '#cbd0c8'; c.fillRect(0, 0, 900, 650);
+    c.strokeStyle = '#666f66'; c.lineWidth = label === 'BEFORE' ? 7 : 2;
+    for (let x = 0; x < 900; x += 180) for (let y = 0; y < 650; y += 130) c.strokeRect(x, y, 180, 130);
+    c.fillStyle = '#112931'; c.fillRect(0, 470, 900, 180); c.fillStyle = '#fff'; c.font = 'bold 42px sans-serif'; c.fillText('SAMPLE · NOT REAL WORK', 35, 535); c.font = '30px sans-serif'; c.fillText(label, 35, 590);
+    return canvas.toDataURL('image/png').split(',')[1];
+  }, label), 'base64');
+  for (const [group, label] of [['before', 'BEFORE'], ['after', 'AFTER'], ['pending', 'PENDING']]) {
+    await page.locator('.gallery[data-group="' + group + '"]').setInputFiles({ name: label + '.png', mimeType: 'image/png', buffer: await image(label) });
+    await page.waitForFunction(() => !document.querySelector('#report-fields').disabled);
+    await page.locator('.photo-group').filter({ hasText: group === 'before' ? 'Início do dia' : group === 'after' ? 'Fim do dia' : 'O que ficou pendente' }).locator('.photo-tile').waitFor();
+  }
+  await page.locator('#company-logo').setInputFiles({ name: 'example-logo.png', mimeType: 'image/png', buffer: await image('EXAMPLE LOGO') });
+  await page.locator('#logo-preview img').waitFor();
+  await page.waitForFunction(() => document.querySelector('#save-status').textContent === 'Salvo neste navegador');
+  await page.reload();
+  await page.waitForFunction(() => !document.querySelector('#report-fields').disabled);
+  assert.equal(await page.locator('.photo-tile').count(), 3);
+  assert.equal(await page.locator('[name=percent]').inputValue(), '80');
+  assert.equal(await page.locator('#logo-preview img').count(), 1);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+  await page.getByRole('button', { name: 'Ver prévia', exact: true }).click();
+  await page.locator('#cancel-render').waitFor({ state: 'visible' }); await page.getByRole('button', { name: 'Parar', exact: true }).click();
+  await page.waitForFunction(() => !document.querySelector('#report-fields').disabled);
+  assert.match(await page.locator('#render-status').innerText(), /cancelada/);
+  await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+  await context.setOffline(true); await page.reload();
+  await page.waitForFunction(() => !document.querySelector('#report-fields').disabled);
+  assert.equal(await page.locator('.photo-tile').count(), 3);
+  await page.getByRole('button', { name: 'Gerar MP4', exact: true }).click();
+  await page.locator('#result').waitFor({ state: 'visible', timeout: 30000 });
+  const downloadEvent = page.waitForEvent('download');
+  await page.getByRole('link', { name: 'Salvar MP4', exact: true }).click();
+  const download = await downloadEvent;
+  const target = new URL('../.local/daily-report-test.mp4', import.meta.url);
+  mkdirSync(new URL('../.local', import.meta.url), { recursive: true }); await download.saveAs(target.pathname);
+  const probe = JSON.parse(execFileSync('ffprobe', ['-v', 'error', '-show_streams', '-show_format', '-of', 'json', target.pathname], { encoding: 'utf8' }));
+  const video = probe.streams.find(stream => stream.codec_type === 'video');
+  assert.equal(video.codec_name, 'h264'); assert.equal(video.width, 720); assert.equal(video.height, 1280);
+  assert.ok(Number(probe.format.duration) >= 10 && Number(probe.format.duration) < 16, probe.format.duration);
+  assert.ok(readFileSync(target).includes(Buffer.from('ftyp')));
+  execFileSync('ffmpeg', ['-y', '-ss', '10.7', '-i', target.pathname, '-frames:v', '1', new URL('../.local/daily-report-frame.png', import.meta.url).pathname], { stdio: 'pipe' });
+  await context.setOffline(false);
+  const backupEvent = page.waitForEvent('download'); await page.getByRole('button', { name: 'Salvar cópia do registro', exact: true }).click();
+  const backupDownload = await backupEvent, backupPath = join(dir, 'backup.json'); await backupDownload.saveAs(backupPath);
+  const backup = JSON.parse(readFileSync(backupPath, 'utf8')); assert.equal(backup.photos.before.length, 1); assert.ok(backup.logo); assert.equal(backup.fields.company, 'EXAMPLE CONTRACTOR');
+  writeFileSync(new URL('../.local/daily-report-backup-test.json', import.meta.url), JSON.stringify(backup));
+  const secondContext = await browser.newContext({ ...devices['iPhone 13'] }), second = await secondContext.newPage();
+  await second.goto(base + '/relatorio/'); await second.waitForFunction(() => !document.querySelector('#report-fields').disabled);
+  await second.locator('#restore').setInputFiles(backupPath); await second.locator('.photo-tile').nth(2).waitFor();
+  assert.equal(await second.locator('[name=title]').inputValue(), 'DEMO — Daily grout report'); assert.equal(await second.locator('#logo-preview img').count(), 1);
+  const dismiss = second.waitForEvent('dialog').then(dialog => dialog.dismiss()); await second.getByRole('button', { name: 'Novo relatório', exact: true }).click(); await dismiss;
+  assert.equal(await second.locator('.photo-tile').count(), 3);
+  const accept = second.waitForEvent('dialog').then(dialog => dialog.accept()); await second.getByRole('button', { name: 'Novo relatório', exact: true }).click(); await accept;
+  await second.waitForFunction(() => document.querySelectorAll('.photo-tile').length === 0);
+  assert.equal(await second.locator('[name=title]').inputValue(), '');
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, 'canShare', { configurable: true, value: () => true });
+    Object.defineProperty(navigator, 'share', { configurable: true, value: async data => { window.sharedTestFile = { name: data.files[0].name, type: data.files[0].type, size: data.files[0].size }; } });
+  });
+  await page.getByRole('button', { name: 'Compartilhar MP4', exact: true }).click();
+  assert.equal(await page.evaluate(() => window.sharedTestFile.type), 'video/mp4');
+  assert.deepEqual(errors, []); assert.deepEqual(forbiddenRequests, []);
+  console.log('PASS mobile-emulated report: no company branding by default, custom logo, partial progress, before/after/pending, IndexedDB reload, cancellation, offline reopen/export, H264 MP4 720x1280, backup/restore and share-file wiring. No photo uploads or AI calls. Physical iPhone/Safari still requires tonight’s device test.');
+  console.log(JSON.stringify({ duration: probe.format.duration, size: probe.format.size, videoCodec: video.codec_name, artifact: target.pathname }));
+} finally {
+  await browser?.close();
+  if (child && child.exitCode === null && child.signalCode === null) { const done = once(child, 'exit'); child.kill('SIGTERM'); await done; }
+  rmSync(dir, { recursive: true, force: true });
+}

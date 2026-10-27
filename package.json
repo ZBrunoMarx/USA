@@ -1,0 +1,36 @@
+{
+  "name": "skytile-local",
+  "version": "0.3.2",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "preview": "node scripts/build-preview.mjs",
+    "test:browser": "node scripts/test-browser.mjs",
+    "test:preview": "node scripts/test-preview.mjs",
+    "build:site": "node scripts/build-site.mjs",
+    "test:finance": "node scripts/test-finance-browser.mjs",
+    "test:vision": "node scripts/test-vision-browser.mjs",
+    "test:auth": "node scripts/test-auth-browser.mjs",
+    "build:deploy": "node scripts/build-deploy.mjs",
+    "check:migrations": "node scripts/check-migrations.mjs",
+    "test:ci-browser": "node scripts/check-ci-browser.mjs",
+    "build:pages": "node scripts/build-pages.mjs",
+    "db:deploy": "node scripts/deploy-database.mjs",
+    "db:plan": "node scripts/deploy-database.mjs --dry-run"
+  },
+  "engines": {
+    "node": ">=22.19"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.11",
+    "@supabase/supabase-js": "2.118.0",
+    "esbuild": "0.25.12",
+    "playwright": "1.64.0",
+    "supabase": "2.122.0"
+  },
+  "dependencies": {
+    "undici": "8.12.2"
+  }
+}
