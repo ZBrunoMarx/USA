@@ -1,9 +1,10 @@
 // Uses an isolated local PostgreSQL container, never the hosted project.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { managedSchemas } from '../tests/helpers/supabase-fixture.mjs';
+const versions=readdirSync(new URL('../supabase/migrations/',import.meta.url)).filter(name=>name.endsWith('.sql')).sort().map(name=>name.slice(0,14));
 const name='field-report-ci-'+randomUUID().slice(0,8), root=new URL('..',import.meta.url);
 const dockerArgs=['--host=unix:///var/run/docker.sock'];
 const env={...process.env};for(const key of ['DOCKER_HOST','DOCKER_CONTEXT','DOCKER_TLS','DOCKER_TLS_VERIFY','DOCKER_CERT_PATH'])delete env[key];
@@ -20,13 +21,14 @@ try{
  psql("insert into public.fr_companies(name) values('Retained company');insert into public.fr_jobs(company_id,name) select id,'Retained job' from public.fr_companies;");
  const cliEnv={...process.env,CI:'true',NODE_ENV:'test',SUPABASE_DB_URL:'postgresql://postgres:local-migration-test-only@127.0.0.1:'+port+'/postgres?sslmode=disable'};
  const run=(flags=[])=>{const result=spawnSync(process.execPath,['scripts/deploy-database.mjs','--local-test',...flags],{cwd:root,env:cliEnv,encoding:'utf8',timeout:180000});assert.equal(result.status,0,(result.stdout||'')+(result.stderr||''));return result.stdout;};
- const plan=run(['--dry-run']);assert.match(plan,/20261026000000/);
+ const plan=run(['--dry-run']);for(const version of versions)assert.ok(plan.includes(version));
  assert.equal(psql("select count(*) from information_schema.tables where table_schema='public' and table_name='fr_tasks';"),'0');
  run();
- assert.equal(psql("select version from supabase_migrations.schema_migrations;"),'20261026000000');
+ assert.equal(psql("select version from supabase_migrations.schema_migrations order by version;"),versions.join('\n'));
  assert.equal(psql('select name from public.fr_jobs;'),'Retained job');
+ assert.equal(psql("select count(*) from information_schema.tables where table_schema='public' and table_name='fr_service_catalog';"),'1');
  assert.equal(psql("select count(*) from information_schema.tables where table_schema='public' and table_name='fr_tasks';"),'1');
  const second=run();assert.match(second,/up.to.date|no.*migration|nothing.*apply/i);
- assert.equal(psql('select count(*) from supabase_migrations.schema_migrations;'),'1');
+ assert.equal(psql('select count(*) from supabase_migrations.schema_migrations;'),String(versions.length));
  console.log('PASS actual Supabase CLI + isolated PostgreSQL 17: dry-run leaves schema untouched, pending migration applies, history is recorded, existing job survives, second run does not reapply. No hosted writes.');
 }finally{if(id)docker(['rm','-f',id]);}

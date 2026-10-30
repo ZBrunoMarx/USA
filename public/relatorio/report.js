@@ -515,7 +515,7 @@ async function startShared() {
 }
 function wireWorkspace() {
   workspace.setup();
-  $('#create-cloud-job').onclick = () => { $('#cloud-job-form').reset(); $('#job-form-status').textContent = ''; workspace.prepareJobForm(); $('#job-dialog').showModal(); };
+  $('#create-cloud-job').onclick = () => workspace.openJobForm();
   $('#cancel-cloud-job').onclick = () => $('#job-dialog').close();
   $('#cloud-job-form').onsubmit = event => { event.preventDefault(); void runTask(async () => {
     const form = $('#cloud-job-form'), button = form.querySelector('[type=submit]'); button.disabled = true; $('#job-form-status').textContent = 'Salvando obra…';

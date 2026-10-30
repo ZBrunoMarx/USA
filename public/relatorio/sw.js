@@ -1,4 +1,4 @@
-const CACHE = 'field-report-v3-0';
+const CACHE = 'field-report-v3-1';
 const ASSETS = ['./', './index.html', './report.js', './workspace.js', './report.css', './library.js', './sync.js', './cloud-config.js', './supabase-vendor.js', './supabase-sync.js'];
 self.addEventListener('install', event => event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(ASSETS.map(path => new Request(path, { cache: 'reload' }))))));
 self.addEventListener('activate', event => event.waitUntil(Promise.all([

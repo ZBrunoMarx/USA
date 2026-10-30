@@ -1,6 +1,6 @@
 'use strict';
 globalThis.FieldReportWorkspace = class {
-  constructor(hooks) { this.h = hooks; this.view = 'jobs'; this.jobId = null; this.filter = 'open'; this.search = ''; this.settingsRendered = false; this.expandedTasks = new Set(); }
+  constructor(hooks) { this.h = hooks; this.view = 'jobs'; this.jobId = null; this.filter = 'open'; this.search = ''; this.settingsRendered = false; this.expandedTasks = new Set(); this.catalogFilter = 'active'; }
   get data() { return this.h.state().data; }
   get admin() { return this.data?.user.role === 'admin'; }
   get enabled() { return this.h.state().provider === 'supabase' && !!this.data; }
@@ -22,6 +22,7 @@ globalThis.FieldReportWorkspace = class {
   setup() {
     this.el('nav-jobs').onclick = () => void this.act(() => this.show('jobs'));
     this.el('nav-reports').onclick = () => void this.act(async () => { await this.h.reports(); });
+    this.el('nav-catalog').onclick = () => void this.act(() => this.show('catalog'));
     this.el('nav-team').onclick = () => void this.act(() => this.show('team'));
     this.el('nav-settings').onclick = () => void this.act(() => this.show('settings'));
     this.el('signup-access').onclick = () => this.signup();
@@ -30,9 +31,9 @@ globalThis.FieldReportWorkspace = class {
   refresh() {
     document.body.classList.toggle('company-session', this.enabled);
     this.el('workspace-nav').hidden = !this.enabled;
-    this.el('nav-team').hidden = this.el('nav-settings').hidden = !this.admin;
+    this.el('nav-catalog').hidden = this.el('nav-team').hidden = this.el('nav-settings').hidden = !this.admin;
     this.el('signup-access').hidden = this.h.state().provider !== 'supabase' || !!this.data;
-    if (!this.enabled) { this.hide(); this.expandedTasks.clear(); this.view = 'jobs'; this.jobId = null; this.filter = 'open'; this.search = ''; return; }
+    if (!this.enabled) { this.hide(); this.expandedTasks.clear(); this.view = 'jobs'; this.jobId = null; this.filter = 'open'; this.search = ''; this.catalogFilter = 'active'; return; }
     const management = this.data.workspaceReady;
     this.el('cloud-logout').textContent = 'Sair';
     this.el('connection-title').textContent = this.data.company?.name || 'Minha companhia';
@@ -45,11 +46,12 @@ globalThis.FieldReportWorkspace = class {
   render() {
     if (!this.enabled) return;
     const root = this.el('job-workspace');
-    for (const name of ['jobs','team','settings']) this.el('nav-' + name).className = this.view === name || (name === 'jobs' && this.view === 'job') ? 'primary' : 'secondary';
+    for (const name of ['jobs','catalog','team','settings']) this.el('nav-' + name).className = this.view === name || (name === 'jobs' && this.view === 'job') ? 'primary' : 'secondary';
     if (!this.data.workspaceReady) {
       root.innerHTML = '<section class="card"><h2>Obras da companhia</h2><p>Seus relatórios e fotos continuam disponíveis em Registros. A nova organização precisa de uma atualização do banco.</p>' + (this.admin ? '<a class="button primary" href="./atualizar.html" target="_blank" rel="noopener">Atualizar banco</a>' : '<p>Peça ao administrador para atualizar o banco da companhia.</p>') + '</section>' + this.jobsHTML(false);
       this.wireJobs(); return;
     }
+    if (this.view === 'catalog' && this.admin) { this.renderCatalog(); return; }
     if (this.view === 'team' && this.admin) { this.renderTeam(); return; }
     if (this.view === 'settings' && this.admin) { if (!this.settingsRendered) this.renderSettings(); return; }
     if (this.view === 'job') { this.renderJob(); return; }
@@ -90,17 +92,57 @@ globalThis.FieldReportWorkspace = class {
     this.wireReports();
   }
   wireReports() { document.querySelectorAll('[data-workspace-report]').forEach(button => button.onclick = () => void this.act(() => this.h.open(button.dataset.workspaceReport))); }
-  catalog() { return ['Preparação da base','Remoção do revestimento','Limpeza e preparação da superfície','Self-level','Impermeabilização','Instalação de piso','Instalação de parede','Rejunte / Grout','Soleira','Silicone e acabamento']; }
+  catalogExamples() { return ['Preparação da base','Remoção do revestimento','Limpeza e preparação da superfície','Self-level','Impermeabilização','Instalação de piso','Instalação de parede','Rejunte / Grout','Soleira','Silicone e acabamento']; }
+  activeServices() { return (this.data.catalog || []).filter(service => service.active); }
+  serviceOptions(selected = '') {
+    return '<option value="">Selecione um serviço cadastrado</option>' + this.activeServices().map(service => '<option value="' + this.esc(service.id) + '" data-revision="' + service.revision + '"' + (service.id === selected ? ' selected' : '') + '>' + this.esc(service.name) + '</option>').join('');
+  }
+  wireServiceSelection(select, instructions) {
+    let lastDefault = '';
+    select.onchange = () => {
+      const service = this.activeServices().find(item => item.id === select.value);
+      if (!instructions.value || instructions.value === lastDefault) instructions.value = service?.instructions || '';
+      lastDefault = service?.instructions || '';
+    };
+  }
   addPlannedRow(task = {}) {
     const row = document.createElement('div'); row.className = 'planned-row';
-    row.innerHTML = '<label>Ambiente <span class="optional">opcional em serviço único</span><input data-planned-room maxlength="100" placeholder="Banheiro principal" value="' + this.esc(task.room) + '"></label><label>Serviço<input data-planned-name list="task-catalog" maxlength="100" required placeholder="Ex.: Rejunte / Grout" value="' + this.esc(task.name) + '"></label><label>Orientação <span class="optional">opcional</span><textarea data-planned-instructions maxlength="600" rows="2" placeholder="Escopo, material ou detalhe combinado">' + this.esc(task.instructions) + '</textarea></label><button type="button" class="secondary danger">Remover da lista</button>';
+    const picker = this.data.catalogReady ? '<select data-planned-service required>' + this.serviceOptions(task.serviceId) + '</select>' : '<input data-planned-name list="task-catalog" maxlength="100" required placeholder="Ex.: Rejunte / Grout" value="' + this.esc(task.name) + '">';
+    row.innerHTML = '<label>Ambiente <span class="optional">opcional em serviço único</span><input data-planned-room maxlength="100" placeholder="Banheiro principal" value="' + this.esc(task.room) + '"></label><label>Serviço' + picker + '</label><label>Orientação para esta obra <span class="optional">opcional</span><textarea data-planned-instructions maxlength="600" rows="2" placeholder="Escopo, material ou detalhe combinado">' + this.esc(task.instructions) + '</textarea></label><button type="button" class="secondary danger">Remover da lista</button>';
+    if (this.data.catalogReady) this.wireServiceSelection(row.querySelector('[data-planned-service]'),row.querySelector('[data-planned-instructions]'));
     row.querySelector('button').onclick = () => row.remove(); this.el('job-planned-tasks').append(row);
   }
   prepareJobForm() {
-    this.el('job-planned-tasks').innerHTML = '<datalist id="task-catalog">' + this.catalog().map(name => '<option value="' + this.esc(name) + '"></option>').join('') + '</datalist>';
+    this.el('job-planned-tasks').innerHTML = this.data.catalogReady ? '<p class="hint">Selecione os serviços do catálogo. Orientações específicas ficam apenas nesta obra.</p>' : '<datalist id="task-catalog">' + this.catalogExamples().map(name => '<option value="' + this.esc(name) + '"></option>').join('') + '</datalist>';
     this.addPlannedRow();
   }
-  plannedValues() { return [...document.querySelectorAll('#job-planned-tasks .planned-row')].map(row => ({ room: row.querySelector('[data-planned-room]').value.trim(), name: row.querySelector('[data-planned-name]').value.trim(), instructions: row.querySelector('[data-planned-instructions]').value.trim() })); }
+  plannedValues() {
+    return [...document.querySelectorAll('#job-planned-tasks .planned-row')].map(row => {
+      const selection = row.querySelector('[data-planned-service]');
+      return { room: row.querySelector('[data-planned-room]').value.trim(), instructions: row.querySelector('[data-planned-instructions]').value.trim(), ...(selection ? { serviceId: selection.value, serviceRevision: Number(selection.selectedOptions[0]?.dataset.revision) } : { name: row.querySelector('[data-planned-name]').value.trim() }) };
+    });
+  }
+  openJobForm() {
+    if (this.data.catalogReady && !this.activeServices().length) {
+      this.h.message('Cadastre os serviços da companhia antes de criar a primeira obra.');
+      void this.act(() => this.show('catalog')); return;
+    }
+    this.el('cloud-job-form').reset(); this.el('job-form-status').textContent = ''; this.prepareJobForm(); this.el('job-dialog').showModal();
+  }
+  renderCatalog() {
+    if (!this.data.catalogReady) {
+      this.el('job-workspace').innerHTML = '<section class="card"><h2>Catálogo de serviços</h2><p>O catálogo aguarda a atualização do sistema. As obras e os registros existentes continuam disponíveis.</p><p class="hint">A atualização será aplicada pela publicação automática.</p></section>'; return;
+    }
+    const list = (this.data.catalog || []).filter(service => this.catalogFilter === 'all' || (this.catalogFilter === 'inactive' ? !service.active : service.active));
+    this.el('job-workspace').innerHTML = '<section class="card"><h2>Serviços da companhia</h2><p>Cadastre uma vez. Ao montar uma obra, selecione quais serviços serão executados em cada ambiente.</p><button id="add-catalog-service" type="button" class="primary">+ Cadastrar serviço</button><label>Mostrar<select id="catalog-filter"><option value="active">Ativos</option><option value="inactive">Inativos</option><option value="all">Todos</option></select></label>' + list.map(service => '<article class="service-item"><span class="badge">' + (service.active ? 'Ativo' : 'Inativo') + '</span><h3>' + this.esc(service.name) + '</h3>' + (service.instructions ? '<p>' + this.esc(service.instructions) + '</p>' : '') + '<button type="button" class="secondary" data-edit-service="' + this.esc(service.id) + '">Editar serviço</button></article>').join('') + (!list.length ? '<p class="empty-state">' + (!(this.data.catalog || []).length ? 'Comece cadastrando os serviços que a companhia oferece, como Self-level, Impermeabilização, Assentamento e Rejunte.' : 'Nenhum serviço nesta seleção.') + '</p>' : '') + '<p class="hint">Desativar retira o serviço das próximas seleções. Obras e registros anteriores mantêm o nome e as orientações usados no planejamento.</p></section>';
+    this.el('catalog-filter').value = this.catalogFilter;
+    this.el('catalog-filter').onchange = event => { this.catalogFilter = event.target.value; this.renderCatalog(); };
+    this.el('add-catalog-service').onclick = () => this.serviceDialog();
+    document.querySelectorAll('[data-edit-service]').forEach(button => button.onclick = () => this.serviceDialog(this.data.catalog.find(service => service.id === button.dataset.editService)));
+  }
+  serviceDialog(service = {}) {
+    this.dialog('<h2>' + (service.id ? 'Editar serviço' : 'Cadastrar serviço') + '</h2><label>Nome do serviço<input name="name" list="service-examples" maxlength="100" required value="' + this.esc(service.name) + '" placeholder="Ex.: Rejunte / Grout"></label><datalist id="service-examples">' + this.catalogExamples().map(name => '<option value="' + this.esc(name) + '"></option>').join('') + '</datalist><label>Orientação padrão <span class="optional">opcional</span><textarea name="instructions" maxlength="600" rows="3" placeholder="Pode ser ajustada no planejamento de cada obra">' + this.esc(service.instructions) + '</textarea></label><label>Situação<select name="active"><option value="true">Ativo</option><option value="false"' + (service.active === false ? ' selected' : '') + '>Inativo</option></select></label>', form => this.h.sync.saveService({ id: service.id, revision: service.revision, name: form.elements.name.value, instructions: form.elements.instructions.value, active: form.elements.active.value === 'true' }));
+  }
   dialog(html, save) {
     const form = this.el('workspace-form'); form.innerHTML = html + '<p id="workspace-form-status" class="hint" role="status"></p><div class="actions"><button id="workspace-cancel" type="button" class="secondary">Cancelar</button><button type="submit" class="primary">Salvar</button></div>';
     this.el('workspace-cancel').onclick = () => this.el('workspace-dialog').close();
@@ -108,6 +150,11 @@ globalThis.FieldReportWorkspace = class {
     this.el('workspace-dialog').showModal();
   }
   taskDialog(job) {
+    if (this.data.catalogReady) {
+      if (!this.activeServices().length) { this.h.message('Cadastre um serviço ativo antes de adicioná-lo à obra.'); void this.act(() => this.show('catalog')); return; }
+      this.dialog('<h2>Adicionar serviço previsto</h2><label>Ambiente<input name="room" maxlength="100" placeholder="Opcional para um serviço único"></label><label>Serviço<select name="service" required>' + this.serviceOptions() + '</select></label><label>Orientação para esta obra<textarea name="instructions" maxlength="600" rows="3"></textarea></label>', form => this.h.sync.addCatalogTask(job.id,{ id: form.elements.service.value, revision: Number(form.elements.service.selectedOptions[0]?.dataset.revision) },form.elements.room.value,form.elements.instructions.value));
+      this.wireServiceSelection(this.el('workspace-form').elements.service,this.el('workspace-form').elements.instructions); return;
+    }
     this.dialog('<h2>Adicionar serviço previsto</h2><label>Ambiente<input name="room" maxlength="100" placeholder="Opcional para um serviço único"></label><label>Serviço<input name="name" maxlength="100" required placeholder="Ex.: Impermeabilização"></label><label>Orientação<textarea name="instructions" maxlength="600" rows="3"></textarea></label>', form => this.h.sync.addTask(job.id,form.elements.room.value,form.elements.name.value,form.elements.instructions.value));
   }
   renderTeam() {

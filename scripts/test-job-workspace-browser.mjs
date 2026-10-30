@@ -43,16 +43,16 @@ async function setup(page) {
     if(!/^fr_[a-z_]+$/.test(name)||entries.some(([key])=>!/^p_[a-z_]+$/.test(key)))throw new Error('Unexpected RPC');
     const value=await sqlActor(id,async()=> (await db.query('select public.'+name+'('+entries.map(([key],i)=>key+'=>$'+(i+1)).join(',')+') as result',entries.map(([,v])=>typeof v==='object'&&v!==null?JSON.stringify(v):v))).rows[0].result);
     const response=await reply(value);
-    if(value?.id)broadcast(name==='fr_create_job'||name==='fr_change_job_status'?'fr_jobs':name==='fr_save_company'?'fr_companies':name==='fr_save_staff'?'fr_staff':'fr_reports',value);
+    if(value?.id)broadcast(name==='fr_create_job'||name==='fr_change_job_status'?'fr_jobs':name==='fr_save_company'?'fr_companies':name==='fr_save_staff'?'fr_staff':name==='fr_save_service'?'fr_service_catalog':'fr_reports',value);
     if(name==='fr_save_task_report'||name==='fr_reopen_task'||name==='fr_add_task')broadcast('fr_tasks',{company_id:company});
     return response;
    }
    const match=url.pathname.match(/^\/rest\/v1\/(fr_[a-z_]+)$/);
    if(match){
-    const table=match[1];if(!['fr_members','fr_jobs','fr_reports','fr_tasks','fr_companies','fr_staff'].includes(table))throw new Error('Unexpected table');
+    const table=match[1];if(!['fr_members','fr_jobs','fr_reports','fr_tasks','fr_companies','fr_staff','fr_service_catalog','fr_service_events'].includes(table))throw new Error('Unexpected table');
     let query='select * from public.'+table, params=[];
     for(const [key,value]of url.searchParams)if(value.startsWith('eq.')&&['id','company_id'].includes(key)){params.push(value.slice(3));query+=(params.length===1?' where ':' and ')+key+'=$'+params.length;}
-    const order=url.searchParams.get('order');if(order&&/^(created_at|updated_at|position|display_name)\.(asc|desc)$/.test(order))query+=' order by '+order.replace('.',' ');
+    const order=url.searchParams.get('order');if(order&&/^(created_at|updated_at|position|display_name|name)\.(asc|desc)$/.test(order))query+=' order by '+order.replace('.',' ');
     const rows=await sqlActor(id,async()=> (await db.query(query,params)).rows);
     return reply(req.headers().accept?.includes('vnd.pgrst.object')?rows[0]:rows);
    }
@@ -96,10 +96,19 @@ try {
  });
  await dbChain;await db.exec(readFileSync(new URL('../deploy/supabase/04-job-workspace.sql',import.meta.url),'utf8'));
  await owner.reload();await owner.locator('#workspace-new-job').waitFor();
+ await check('catalog setup: old schema remains readable, empty catalog directs admin to services',async()=>{
+  await owner.locator('#nav-catalog').click();await owner.getByText('O catálogo aguarda a atualização do sistema.',{exact:false}).waitFor();
+  await dbChain;await db.exec(readFileSync(new URL('../supabase/migrations/20261029000000_service_catalog.sql',import.meta.url),'utf8'));
+  await owner.reload();await owner.locator('#workspace-new-job').click();await owner.locator('#add-catalog-service').waitFor();assert.equal(await owner.locator('#job-dialog').isVisible(),false);
+  for(const[name,instructions]of[['Self-level','Follow approved material instructions.'],['Grout','']]){
+   await owner.locator('#add-catalog-service').click();await owner.locator('#workspace-form [name=name]').fill(name);await owner.locator('#workspace-form [name=instructions]').fill(instructions);await owner.locator('#workspace-form [type=submit]').click();await owner.locator('#workspace-dialog').waitFor({state:'hidden'});await owner.locator('.service-item').filter({hasText:name}).waitFor();
+  }
+  await owner.locator('#nav-jobs').click();
+ });
  await check('admin creates repair with two planned room services atomically',async()=>{
   await owner.locator('#workspace-new-job').click();await owner.locator('#cloud-job-form [name=name]').fill('Bathroom repair');await owner.locator('#cloud-job-form [name=kind]').selectOption('repair');
-  await owner.locator('[data-planned-room]').fill('Bathroom');await owner.locator('[data-planned-name]').fill('Self-level');await owner.locator('[data-planned-instructions]').fill('Follow approved material instructions.');
-  await owner.locator('#add-planned-task').click();await owner.locator('[data-planned-room]').nth(1).fill('Bathroom');await owner.locator('[data-planned-name]').nth(1).fill('Grout');
+  await owner.locator('[data-planned-room]').fill('Bathroom');await owner.locator('[data-planned-service]').selectOption({label:'Self-level'});assert.equal(await owner.locator('[data-planned-instructions]').inputValue(),'Follow approved material instructions.');await owner.locator('[data-planned-instructions]').fill('Follow approved material instructions.');
+  await owner.locator('#add-planned-task').click();await owner.locator('[data-planned-room]').nth(1).fill('Bathroom');await owner.locator('[data-planned-service]').nth(1).selectOption({label:'Grout'});
   await owner.locator('#cloud-job-form [type=submit]').click();await owner.locator('#job-dialog').waitFor({state:'hidden'});await owner.locator('.planned-task').nth(1).waitFor();
   assert.equal(await owner.locator('.planned-task').count(),2);assert.match(await owner.locator('#job-workspace').innerText(),/Reparo contratado/);
  });
@@ -108,7 +117,7 @@ try {
   await owner.locator('#nav-settings').click();await owner.locator('#company-settings [name=name]').fill('REAL CONTRACTOR');
   const logo=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64');
   await owner.locator('#company-settings [name=logo]').setInputFiles({name:'logo.png',mimeType:'image/png',buffer:logo});await owner.locator('#company-settings [type=submit]').click();await owner.waitForFunction(()=>document.querySelector('#message').textContent.includes('Companhia atualizada'));
-  await worker.goto(base+'/relatorio/');await login(worker,'worker@example.test');assert.equal(await worker.locator('#nav-team').isVisible(),false);assert.equal(await worker.locator('#create-cloud-job').isVisible(),false);assert.equal(await worker.locator('#new-service').isVisible(),false);
+  await worker.goto(base+'/relatorio/');await login(worker,'worker@example.test');assert.equal(await worker.locator('#nav-catalog').isVisible(),false);assert.equal(await worker.locator('#nav-team').isVisible(),false);assert.equal(await worker.locator('#create-cloud-job').isVisible(),false);assert.equal(await worker.locator('#new-service').isVisible(),false);
  });
  await check('worker opens job, starts planned service, company branding inherited, incomplete day stays active',async()=>{
   await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Registrar dia'}).click();
@@ -143,6 +152,13 @@ try {
   await login(worker,'worker@example.test');await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();
   await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Ver registros'}).click();await worker.locator('.task-history .daily-record').getByRole('button',{name:'Fotos e vídeo'}).click();await worker.locator('.photo-tile').waitFor();
   assert.equal(await worker.locator('[name=percent]').inputValue(),'100');assert.equal(await worker.locator('[name=company]').inputValue(),'REAL CONTRACTOR');
+ });
+ await check('catalog changes affect new selections while existing execution keeps its original scope',async()=>{
+  await owner.locator('#nav-catalog').click();await owner.locator('.service-item').filter({hasText:'Grout'}).getByRole('button',{name:'Editar serviço'}).click();await owner.locator('#workspace-form [name=name]').fill('Grout revised');await owner.locator('#workspace-form [name=active]').selectOption('false');await owner.locator('#workspace-form [type=submit]').click();await owner.locator('#workspace-dialog').waitFor({state:'hidden'});
+  await owner.locator('#catalog-filter').selectOption('inactive');await owner.locator('.service-item').filter({hasText:'Grout revised'}).waitFor();
+  await owner.locator('#nav-jobs').click();await owner.locator('#workspace-new-job').click();assert.equal(await owner.locator('[data-planned-service] option').filter({hasText:'Grout revised'}).count(),0);await owner.locator('#cancel-cloud-job').click();
+  await owner.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();assert.equal(await owner.locator('.planned-task h3').filter({hasText:'Grout revised'}).count(),0);await owner.locator('.planned-task h3').filter({hasText:'Grout'}).waitFor();
+  await owner.locator('#detail-add-task').click();await owner.locator('#workspace-form [name=service]').selectOption({label:'Self-level'});await owner.locator('#workspace-form [name=room]').fill('Second room');await owner.locator('#workspace-form [type=submit]').click();await owner.locator('#workspace-dialog').waitFor({state:'hidden'});await owner.locator('.planned-task').filter({hasText:'Second room'}).waitFor();
  });
  assert.deepEqual(errors,[]);assert.ok(images.size>=3);assert.ok(!requests.some(path=>path.includes('/object/public/')));
  await owner.locator('#nav-jobs').click();await owner.locator('.job-card').first().waitFor();await owner.screenshot({path:new URL('../.local/jobs-workspace-mobile.png',import.meta.url).pathname,fullPage:true});await worker.locator('#save-service').click();await worker.locator('#job-workspace').waitFor({state:'visible'});await worker.screenshot({path:new URL('../.local/job-detail-mobile.png',import.meta.url).pathname,fullPage:true});

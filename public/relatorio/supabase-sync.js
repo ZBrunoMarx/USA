@@ -25,7 +25,7 @@ globalThis.FieldReportSupabaseSync = class extends FieldReportSync {
     const status = error.code === '40001' ? 409 : error.code === '42501' ? 403 : /^(22|23)/.test(error.code || '') ? 400 : ['PGRST202','PGRST205','42P01'].includes(error.code) ? 404 : Number(error.status || error.statusCode) || 503;
     let message = error.message || 'Não foi possível acessar a companhia. Seu registro local foi preservado.';
     if (error.code === 'invalid_credentials' || error.code === 'invalid_login_credentials') message = 'E-mail ou senha inválidos.';
-    if (error.code === '23505') message = 'Este ID ou e-mail já está cadastrado. Confira a equipe.';
+    if (error.code === '23505') message = 'Este nome, ID ou e-mail já está cadastrado. Confira os dados.';
     if (error.code === 'PGRST202') message = 'O banco precisa da atualização de gestão de obras. Peça ao administrador para abrir Atualizar banco.';
     if (error.code === 'PGRST205' || error.code === '42P01') message = 'O projeto precisa receber a configuração do banco antes do primeiro acesso.';
     if (status === 429) message = 'Limite temporário do serviço. Aguarde e tente novamente; seu registro está no aparelho.';
@@ -57,14 +57,23 @@ globalThis.FieldReportSupabaseSync = class extends FieldReportSync {
       const settings = await client.from('fr_companies').select('*').eq('id', this.profile.company_id).single(); this.check(settings.error); company = settings.data;
       if (this.profile.role === 'admin') { const team = await client.from('fr_staff').select('*').order('display_name'); this.check(team.error); staff = team.data; }
     }
-    return { user: this.user, jobs: jobs.data, reports: reports.data.map(row => this.normalize(row)), tasks: tasks.data || [], company, staff, workspaceReady };
+    let catalog = [], catalogReady = false;
+    if (workspaceReady) {
+      const result = await client.from('fr_service_catalog').select('*').order('name');
+      if (result.error && !['PGRST205','42P01'].includes(result.error.code)) this.check(result.error);
+      catalogReady = !result.error; catalog = result.data || [];
+    }
+    this.catalogReady = catalogReady;
+    return { user: this.user, jobs: jobs.data, reports: reports.data.map(row => this.normalize(row)), tasks: tasks.data || [], company, staff, workspaceReady, catalog, catalogReady };
   }
   async rpc(name, params) { const result = await this.clientInstance().rpc(name, params); this.check(result.error); return result.data; }
   async createJob(name, address, kind = 'installation', tasks) {
-    if (tasks) return this.rpc('fr_create_job', { p_name: name.trim(), p_address: address.trim(), p_kind: kind, p_tasks: tasks });
+    if (tasks) return this.rpc(this.catalogReady ? 'fr_create_catalog_job' : 'fr_create_job', { p_name: name.trim(), p_address: address.trim(), p_kind: kind, p_tasks: tasks });
     if (!this.profile || this.profile.role !== 'admin') throw Object.assign(new Error('Somente administradores cadastram obras.'), { status: 403 });
     const result = await this.clientInstance().from('fr_jobs').insert({ company_id: this.profile.company_id, name: name.trim(), address: address.trim() }).select('*').single(); this.check(result.error); return result.data;
   }
+  async addCatalogTask(jobId, service, room, instructions) { return this.rpc('fr_add_catalog_task', { p_job_id: jobId, p_service_id: service.id, p_service_revision: service.revision, p_room: room, p_instructions: instructions }); }
+  async saveService(item) { return this.rpc('fr_save_service', { p_id: item.id || null, p_revision: item.revision || 0, p_name: item.name, p_instructions: item.instructions, p_active: item.active }); }
   async addTask(jobId, room, name, instructions) { return this.rpc('fr_add_task', { p_job_id: jobId, p_room: room, p_name: name, p_instructions: instructions }); }
   async changeJob(job, status) { return this.rpc('fr_change_job_status', { p_id: job.id, p_revision: job.revision, p_status: status }); }
   async reopenTask(task) { return this.rpc('fr_reopen_task', { p_id: task.id, p_revision: task.revision }); }
@@ -88,6 +97,7 @@ globalThis.FieldReportSupabaseSync = class extends FieldReportSync {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'fr_jobs', filter: 'company_id=eq.' + this.profile.company_id }, () => void this.onChange())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'fr_tasks', filter: 'company_id=eq.' + this.profile.company_id }, () => void this.onChange())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'fr_companies', filter: 'id=eq.' + this.profile.company_id }, () => void this.onChange())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'fr_service_catalog', filter: 'company_id=eq.' + this.profile.company_id }, () => void this.onChange())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'fr_staff', filter: 'company_id=eq.' + this.profile.company_id }, () => void this.onChange())
       .on('postgres_changes', { event: '*', schema: 'public', table: 'fr_members', filter: 'company_id=eq.' + this.profile.company_id }, () => void this.onChange())
       .subscribe(status => { this.onStatus(status === 'SUBSCRIBED' ? 'Atualizações conectadas' : 'Conferindo atualizações a cada 20 segundos'); if (status === 'SUBSCRIBED') void this.onChange(); });

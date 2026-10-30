@@ -28,3 +28,7 @@ Node.js 24 é usado no CI. `npm start` abre o ambiente Node local; o frontend p�
 A primeira migração automatizada adota o banco existente sem recriar contas, obras ou fotos. Secrets de produção são usados apenas no job de deploy; PRs testam sem esses acessos. Enquanto a configuração inicial não estiver concluída, o workflow registra o deploy pendente e preserva a publicação atual.
 
 O percentual é informado pela equipe, sem certificação técnica por fotos. O MP4 é produzido pelo navegador, sem dependência de API de IA. A análise GPT do backend é uma integração separada e exige uma chave privada e conta de API configuradas.
+
+## Cadastros da companhia
+
+Administradores preparam Equipe e Serviços antes de organizar a execução. O catálogo compartilhado permite selecionar serviços na obra e preserva o escopo histórico ao renomear ou desativar definições. Veja [modelo e estado da entrega](docs/produto/catalogo-de-servicos.md).
