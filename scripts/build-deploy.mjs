@@ -18,6 +18,8 @@ try {
   }
   mkdirSync(join(dir,'deploy'));copyFileSync(join(root,'deploy/LEIAME.md'),join(dir,'deploy/LEIAME.md'));
   copyFileSync(join(root,'deploy/LEIAME.md'),join(dir,'README.md'));
+  mkdirSync(join(dir,'deploy/certs'),{recursive:true});
+  copyFileSync(join(root,'deploy/certs/supabase-prod-ca-2021.crt'),join(dir,'deploy/certs/supabase-prod-ca-2021.crt'));
   mkdirSync(join(dir,'deploy/supabase'),{recursive:true});
   for (const name of ['01-schema.sql','02-first-admin.sql','03-add-member.sql','04-job-workspace.sql','LEIAME.md']) copyFileSync(join(root,'deploy/supabase',name),join(dir,'deploy/supabase',name));
   mkdirSync(join(dir,'supabase/migrations'),{recursive:true});

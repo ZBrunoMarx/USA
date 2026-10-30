@@ -42,3 +42,7 @@ npm run build:pages
 Reverter a interface pode usar um commit de correção/revert. Mudanças do banco são corrigidas por **nova migração**, sem apagar histórico ou restaurar automaticamente dados antigos. Remoções de colunas/dados exigem planejamento separado, depois de versões compatíveis da aplicação; não fazem parte desta adoção.
 
 Referências: https://supabase.com/docs/guides/deployment/managing-environments e https://supabase.com/docs/reference/cli/supabase-db-push .
+
+## TLS do banco
+
+O deploy usa o certificado público oficial Supabase Root 2021 CA, versionado em deploy/certs, por meio de `sslrootcert` e `PGSSLROOTCERT`. A validação continua em `verify-full`, incluindo nome do servidor. Isso permite validar a cadeia do pooler sem desativar TLS ou pedir ao usuário que edite novamente o segredo. O certificado é público e não contém senha nem chave privada.

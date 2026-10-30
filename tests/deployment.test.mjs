@@ -4,9 +4,10 @@ import { readFileSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { X509Certificate } from 'node:crypto';
 import { PGlite } from '@electric-sql/pglite';
 import { managedSchemas } from './helpers/supabase-fixture.mjs';
-import { databaseTarget, redact } from '../scripts/deploy-database.mjs';
+import { databaseTarget, redact, providerCertificatePath } from '../scripts/deploy-database.mjs';
 import { checkMigrations } from '../scripts/check-migrations.mjs';
 const sql = path => readFileSync(new URL('../'+path,import.meta.url),'utf8');
 const baseline = sql('supabase/migrations/20261026000000_field_report_baseline.sql');
@@ -46,7 +47,14 @@ for (const version of ['empty','v2','v3']) test('migration baseline adopts '+ver
 });
 test('deployment only targets the intended project, enforces TLS and redacts credentials',()=>{
  const ref='rzmhubdajnblxgwcoolt',raw='postgresql://postgres.'+ref+':Test%40password@aws-0-us-east-1.pooler.supabase.com:5432/postgres';
- assert.equal(new URL(databaseTarget(raw,ref)).searchParams.get('sslmode'),'verify-full');
+ const target = new URL(databaseTarget(raw,ref));
+ assert.equal(target.searchParams.get('sslmode'),'verify-full');
+ assert.equal(target.searchParams.get('sslrootcert'),providerCertificatePath);
+ const certificate = new X509Certificate(readFileSync(target.searchParams.get('sslrootcert')));
+ assert.equal(certificate.ca,true); assert.equal(certificate.verify(certificate.publicKey),true);
+ assert.match(certificate.subject,/Supabase Root 2021 CA/);
+ assert.ok(Date.parse(certificate.validTo)>Date.now());
+ assert.equal(new URL(databaseTarget(raw+'?sslmode=no-verify&sslrootcert=untrusted',ref)).searchParams.get('sslrootcert'),providerCertificatePath);
  assert.throws(()=>databaseTarget(raw,'aaaaaaaaaaaaaaaaaaaa'));
  assert.throws(()=>databaseTarget(raw.replace(':5432',':6543'),ref));
  assert.throws(()=>databaseTarget('postgresql://postgres:pass@unknown.example/postgres',ref));
