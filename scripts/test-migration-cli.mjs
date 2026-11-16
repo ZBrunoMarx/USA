@@ -12,7 +12,9 @@ const docker=(args,input)=>execFileSync('docker',[...dockerArgs,...args],{env,en
 let id;
 try{
  id=docker(['run','-d','--name',name,'--tmpfs','/var/lib/postgresql/data','-e','POSTGRES_PASSWORD=local-migration-test-only','-p','127.0.0.1::5432','postgres:17']);
- let ready=false;for(let attempt=0;attempt<60;attempt++){try{docker(['exec',id,'pg_isready','-U','postgres']);ready=true;break;}catch{await new Promise(resolve=>setTimeout(resolve,250));}}
+ // The image starts a temporary socket-only server during initialization.
+ // Wait for TCP readiness so schema setup cannot race its shutdown/restart.
+ let ready=false;for(let attempt=0;attempt<60;attempt++){try{docker(['exec',id,'pg_isready','-h','127.0.0.1','-U','postgres']);ready=true;break;}catch{await new Promise(resolve=>setTimeout(resolve,250));}}
  assert.ok(ready,'Postgres startup');
  const port=docker(['port',id,'5432/tcp']).split(':').pop();
  const psql=sql=>docker(['exec','-i',id,'psql','-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1','-At'],sql);
