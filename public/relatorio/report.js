@@ -19,10 +19,12 @@ let libraryList = [], cloudAvailable = false, remoteRefreshing = false;
 const cloudConfig = globalThis.FIELD_REPORT_CLOUD;
 const SyncProvider = cloudConfig?.provider === 'supabase' && (!cloudConfig.siteOrigin || cloudConfig.siteOrigin === location.origin) ? FieldReportSupabaseSync : FieldReportSync;
 const sync = SyncProvider === FieldReportSync ? new SyncProvider(change => refreshShared(change), text => { $('#connection-status').textContent = text; }) : new SyncProvider(globalThis.FIELD_REPORT_CLOUD, change => refreshShared(change), text => { $('#connection-status').textContent = text; });
+const jobVideo = new FieldReportJobVideo({data:()=>cloudData,sync,busy:()=>busy||importing||publishing,refresh:()=>refreshShared(),message:(text,error)=>message(text,error)});
 const workspace = new FieldReportWorkspace({
   state: () => ({ data: cloudData, provider: sync.kind }), sync,
-  busy: () => busy || importing || publishing,
-  leave: () => saveNow(), reports: () => showLibrary(), open: id => openRecord(id),
+  busy: () => busy || importing || publishing || jobVideo.busy,
+  leave: () => { jobVideo.hide(); return saveNow(); }, reports: () => showLibrary(), open: id => openRecord(id),
+  video: job => jobVideo.generate(job.id),
   start: (job, task) => startTaskReport(job, task), refresh: () => refreshShared(),
   prepareImage: (file, isLogo) => prepareImage(file, isLogo), message: (text, error) => message(text,error), enter: () => enterShared(),
 });
@@ -32,7 +34,7 @@ function setAppAccess(allowed) {
   document.body.classList.toggle('access-screen', !allowed);
 }
 function lockSharedAccess(text = 'Entre com seu e-mail e senha.') {
-  cloudEpoch++; clearTimeout(syncTimer); sync.stop();
+  cloudEpoch++; clearTimeout(syncTimer); sync.stop(); jobVideo.hide();
   cloudData = null; remoteReports = [];
   setAppAccess(false); workspace.refresh();
   $('#job-workspace').replaceChildren(); $('#service-list').replaceChildren();
@@ -127,6 +129,20 @@ function update() {
   $('#readonly-notice').hidden = canEdit();
   $('#readonly-notice').textContent = historicalCycle() ? 'Registro de uma execução anterior. Fotos e vídeo continuam disponíveis; para trabalhar no ciclo atual, abra a obra e escolha Registrar dia.' : 'Você está consultando o relatório de outro profissional. Pode ver as fotos e gerar o vídeo.';
   lockFields();
+  $('#individual-video').hidden = !!cloudData;
+  $('#video-language-choice').hidden = !!cloudData;
+  $('#language-hint').hidden = !!cloudData;
+  const plannedContext = !!cloudData && !!cloud?.taskId;
+  for (const element of document.querySelectorAll('[data-context-field]')) element.hidden = plannedContext;
+  $('#report-context-summary').hidden = !plannedContext;
+  $('#report-identification-heading').hidden = plannedContext;
+  if (plannedContext) $('#report-context-summary').textContent = values().title + ' · ' + values().scope + ' · ' + values().date;
+  $('#report-job-choice').hidden = plannedContext;
+  $('#task-binding-label').hidden ||= plannedContext;
+  $('#sharing-instructions').hidden = !!cloudData;
+  $('#publish-report').hidden = plannedContext && !syncError && !conflict;
+  $('#publish-report').textContent = plannedContext ? 'Tentar enviar novamente' : 'Publicar atualização';
+  $('#record-tools').hidden = !!cloudData && cloudData.user.role !== 'admin';
   $('#language-hint').textContent = form.elements.language.value === 'en' ? 'As legendas fixas serão em inglês. Escreva os textos abaixo em inglês, se quiser incluí-los.' : 'As legendas fixas e os textos do vídeo podem ficar em português.';
   const differentDay = values().date && values().date !== today();
   $('#date-notice').hidden = !differentDay;
@@ -354,11 +370,11 @@ function activate(record) {
   logo = record.logo?.blob instanceof Blob ? record.logo : null;
   invalidate(false); renderPhotos(); showEditor(); refreshCloudControls();
 }
-function showEditor() { workspace.hide(); libraryVisible = false; $('#editor').hidden = false; $('#service-library').hidden = true; }
+function showEditor() { jobVideo.hide(); workspace.hide(); libraryVisible = false; $('#editor').hidden = false; $('#service-library').hidden = true; }
 async function showLibrary() {
   if (busy || importing || publishing) return;
   if (!await saveNow()) return;
-  workspace.hide(); libraryVisible = true; $('#editor').hidden = true; $('#service-library').hidden = false;
+  jobVideo.hide(); workspace.hide(); libraryVisible = true; $('#editor').hidden = true; $('#service-library').hidden = false;
   await renderLibrary(); window.scrollTo(0, 0);
 }
 async function newRecord(ask = false) {
@@ -433,7 +449,7 @@ function refreshCloudControls() {
   $('#service-job').innerHTML = '<option value="">Todas as obras e registros locais</option>' + cloudData.jobs.map(job => '<option value="' + escapeHTML(job.id) + '">' + escapeHTML(job.name) + '</option>').join('');
   $('#service-job').value = filterJob;
   refreshTaskControls();
-  $('#sync-status').textContent = conflict ? 'Outra pessoa alterou o relatório. Sua cópia foi preservada.' : publishing ? 'Enviando fotos e registro…' : syncError ? syncError : cloud?.dirty ? 'Salvo no aparelho · aguardando envio' : cloud?.revision ? 'Salvo no servidor · ' + new Date(cloud.syncedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'Escolha a obra e publique para compartilhar este serviço.';
+  $('#sync-status').textContent = conflict ? 'Outra pessoa alterou o relatório. Sua cópia foi preservada.' : publishing ? 'Enviando fotos e registro…' : syncError ? syncError : cloud?.dirty ? 'Salvo no aparelho · aguardando envio' : cloud?.revision ? 'Atualização enviada · ' + new Date(cloud.syncedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : 'Escolha a obra e publique para compartilhar este serviço.';
   $('#reload-remote').hidden = !conflict;
   $('#storage-explanation').textContent = 'Fotos enviadas ficam no servidor da companhia. Use Remover deste aparelho para liberar a cópia local após a confirmação do envio. Registros só locais precisam de cópia de segurança. Esta página não analisa fotos por IA.';
   update();
@@ -641,7 +657,7 @@ async function boot() {
 }
 function refreshTaskControls() {
   const enabled = workspace.enabled && cloudData.workspaceReady;
-  $('#task-binding-label').hidden = !enabled;
+  $('#task-binding-label').hidden = !enabled || !!cloud?.taskId;
   const task = cloudData?.tasks?.find(item => item.id === cloud?.taskId);
   const jobId = cloud?.jobId || $('#cloud-job').value;
   const eligible = (cloudData?.tasks || []).filter(item => item.job_id === jobId && (item.status !== 'completed' || item.id === cloud?.taskId));

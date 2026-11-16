@@ -80,7 +80,7 @@ globalThis.FieldReportSupabaseSync = class extends FieldReportSync {
   async addTask(jobId, room, name, instructions) { return this.rpc('fr_add_task', { p_job_id: jobId, p_room: room, p_name: name, p_instructions: instructions }); }
   async changeJob(job, status) { return this.rpc('fr_change_job_status', { p_id: job.id, p_revision: job.revision, p_status: status }); }
   async reopenTask(task) { return this.rpc('fr_reopen_task', { p_id: task.id, p_revision: task.revision }); }
-  async saveCompany(name, logo, revision) { return this.rpc('fr_save_company', { p_name: name, p_logo: logo ? { id: logo.id, name: logo.name, imageId: logo.imageId || await this.upload(logo) } : null, p_revision: revision }); }
+  async saveCompany(name, logo, revision, videoLanguages) { return this.rpc(videoLanguages ? 'fr_save_company_settings' : 'fr_save_company', { ...(videoLanguages ? { p_video_languages: videoLanguages } : {}), p_name: name, p_logo: logo ? { id: logo.id, name: logo.name, imageId: logo.imageId || await this.upload(logo) } : null, p_revision: revision }); }
   async companyLogo(company) {
     if (!company?.logo) return null;
     const item = company.logo;

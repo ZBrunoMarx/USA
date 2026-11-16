@@ -11,11 +11,12 @@
   <script defer src="./sync.js"></script>
   <script defer src="./supabase-vendor.js"></script>
   <script defer src="./supabase-sync.js"></script>
+  <script defer src="./job-video.js"></script>
   <script defer src="./workspace.js"></script>
   <script defer src="./report.js"></script>
 </head>
 <body class="access-screen">
-  <header class="top"><strong>FIELD REPORT</strong><span>OBRAS E EXECUÇÃO · v3.1</span></header>
+  <header class="top"><strong>FIELD REPORT</strong><span>OBRAS E EXECUÇÃO · v3.3</span></header>
   <main>
     <section class="card" id="cloud-panel">
       <h2 id="connection-title">Acesse sua companhia</h2>
@@ -40,6 +41,7 @@
 
     <nav id="workspace-nav" class="workspace-nav" aria-label="Navegação da companhia" hidden><button id="nav-jobs" type="button" class="primary">Obras</button><button id="nav-reports" type="button" class="secondary">Registros</button><button id="nav-catalog" type="button" class="secondary" hidden>Serviços</button><button id="nav-team" type="button" class="secondary" hidden>Equipe</button><button id="nav-settings" type="button" class="secondary" hidden>Companhia</button></nav>
     <section id="job-workspace" hidden aria-live="polite"></section>
+    <section id="job-video-panel" hidden aria-live="polite"></section>
 
     <section id="service-library" class="card" hidden>
       <div class="section-title"><span class="step">↗</span><div><h2>Registros diários</h2><p>Histórico das fotos e relatos. Registros anteriores foram preservados.</p></div></div>
@@ -52,29 +54,29 @@
     <div id="editor">
     <div class="editor-navigation"><button id="show-services" type="button" class="secondary">← Registros</button><span id="record-state" class="hint"></span></div>
     <section class="card" id="cloud-tools" hidden>
-      <h2>Atualização da obra</h2>
-      <label>Obra da companhia<select id="cloud-job"><option value="">Selecione uma obra</option></select></label>
+      <h2>Registro do trabalho</h2>
+      <label id="report-job-choice">Obra da companhia<select id="cloud-job"><option value="">Selecione uma obra</option></select></label>
       <label id="task-binding-label" hidden>Serviço previsto<select id="report-task"><option value="">Selecione o serviço</option></select></label>
       <p id="task-instructions" class="notice" hidden></p>
       <label id="complete-task-label" class="check" hidden><input id="complete-task" type="checkbox">Concluir este serviço com este envio</label><p id="completion-hint" class="hint" hidden>Para dar o check: 100%, uma foto final e nenhuma pendência. Finalizar o dia não conclui o serviço automaticamente.</p>
       <p id="sync-status" class="hint" role="status"></p>
       <p id="readonly-notice" class="notice" hidden>Você está consultando o relatório de outro profissional. Pode ver as fotos e gerar o vídeo.</p>
       <div class="actions"><button id="publish-report" type="button" class="primary">Publicar atualização</button><button id="reload-remote" type="button" class="secondary" hidden>Preservar cópia e abrir versão do servidor</button></div>
-      <p class="hint">Após vincular a obra, as mudanças são enviadas automaticamente quando houver conexão. Outros usuários com acesso à companhia podem acompanhar. Os percentuais são informados pela equipe.</p>
+      <p class="hint" id="sharing-instructions">Após vincular a obra, as mudanças são enviadas automaticamente quando houver conexão. Outros usuários com acesso à companhia podem acompanhar. Os percentuais são informados pela equipe.</p>
     </section>
     <form id="report-form">
       <fieldset id="report-fields" disabled>
         <section class="card">
-          <div class="section-title"><span class="step">01</span><div><h2>Identifique o trabalho</h2><p>A obra e o serviço vêm do planejamento. Você registra a execução.</p></div></div>
-          <label>Nome da obra ou do serviço<input name="title" maxlength="70" required placeholder="Grout · banheiro da casa"></label>
+          <div id="report-context-summary" class="notice" hidden></div><div class="section-title" id="report-identification-heading"><span class="step">01</span><div><h2>Identifique o trabalho</h2><p>A obra e o serviço vêm do planejamento. Você registra a execução.</p></div></div>
+          <label data-context-field>Nome da obra ou do serviço<input name="title" maxlength="70" required placeholder="Grout · banheiro da casa"></label>
           <div class="row">
-            <label>Data do trabalho<input name="date" type="date" required></label>
-            <label>Seu nome<input name="author" maxlength="45" placeholder="Bruno"></label>
+            <label data-context-field>Data do trabalho<input name="date" type="date" required></label>
+            <label data-context-field>Seu nome<input name="author" maxlength="45" placeholder="Bruno"></label>
           </div>
           <p id="date-notice" class="notice" hidden></p>
-          <label>Ambiente / serviço apresentado<input name="scope" maxlength="90" placeholder="Bathroom floor · grouting"></label>
+          <label data-context-field>Ambiente / serviço apresentado<input name="scope" maxlength="90" placeholder="Bathroom floor · grouting"></label>
           <div class="row">
-            <label>Legendas do vídeo<select name="language"><option value="en">Inglês</option><option value="pt">Português</option></select></label>
+            <label id="video-language-choice">Legendas do vídeo<select name="language"><option value="en">Inglês</option><option value="pt">Português</option></select></label>
             <label>Conclusão deste serviço (%) <span class="optional">opcional</span><input name="percent" type="number" min="0" max="100" step="1" inputmode="numeric" placeholder="Ex.: 80"></label>
           </div>
           <p class="hint">O percentual é sua estimativa para o serviço indicado acima. Não é uma medição por IA nem a conclusão da obra inteira.</p>
@@ -91,7 +93,7 @@
         </section>
 
         <section class="card">
-          <div class="section-title"><span class="step">03</span><div><h2>Deixe o resultado claro</h2><p>Textos opcionais, exatamente como aparecerão no vídeo.</p></div></div>
+          <div class="section-title"><span class="step">03</span><div><h2>Deixe o resultado claro</h2><p>Conte à equipe o que foi feito e o que impediu o avanço.</p></div></div>
           <p id="language-hint" class="hint"></p>
           <label>O que foi feito hoje<textarea name="completed" rows="2" maxlength="220" placeholder="Grouted the bathroom floor."></textarea></label>
           <label>O que ficou pendente<textarea name="remaining" rows="2" maxlength="220" placeholder="Final cleanup and the doorway area."></textarea></label>
@@ -100,31 +102,32 @@
       </fieldset>
     </form>
 
-    <section class="card export-card">
+    <section class="card export-card" id="individual-video">
       <div class="section-title"><span class="step">04</span><div><h2>Veja e compartilhe</h2><p id="film-summary">Adicione suas fotos para preparar a apresentação.</p></div></div>
       <p id="compatibility" class="hint" role="status"></p>
-      <div class="actions"><button id="preview" type="button" class="secondary" disabled>Ver prévia</button><button id="export" type="button" class="primary" disabled>Gerar MP4</button></div>
+      <div class="actions"><button id="preview" type="button" class="secondary" disabled>Ver prévia</button><button id="export" type="button" class="primary" disabled>Gerar vídeo</button></div>
       <p class="hint">Vídeo vertical, sem áudio, com movimento e transições. Para gerar, mantenha o Safari aberto nesta página por alguns segundos.</p>
       <div id="render-status" role="status" aria-live="polite"></div>
       <progress id="render-progress" max="100" value="0" hidden aria-label="Progresso da geração"></progress>
       <button id="cancel-render" type="button" class="secondary" hidden>Parar</button>
       <canvas id="film-canvas" width="720" height="1280" aria-label="Prévia do relatório em vídeo" hidden></canvas>
       <section id="result" hidden>
-        <h3>Seu MP4 está pronto</h3>
+        <h3 id="video-result-title">Seu vídeo está pronto</h3>
         <video id="result-video" controls playsinline preload="metadata"></video>
         <div class="actions"><button id="share" type="button" class="primary">Compartilhar MP4</button><a id="download" class="button secondary" download>Salvar MP4</a></div>
-        <p id="video-info" class="hint"></p>
+        <p id="video-info" class="hint"></p><div id="additional-videos" class="actions"></div>
         <p class="hint">Confira o vídeo antes de enviar. O botão Compartilhar abre as opções do iPhone; você escolhe a pessoa ou o aplicativo.</p>
       </section>
     </section>
 
-    <section class="backup card">
+    <section class="backup card"><div class="actions daily-actions"><button id="save-service" class="primary" type="button" disabled>Salvar e voltar à obra</button></div>
+    <details id="record-tools"><summary>Mais opções do registro</summary>
       <h2>Guarde seu registro</h2>
       <p id="storage-explanation">Os serviços ficam separados neste navegador. Você pode sair de um e abrir outro. No modo local, salve uma cópia antes de remover as fotos do aparelho. Esta página não analisa fotos por IA.</p>
       <div class="actions"><button id="backup" class="secondary" type="button" disabled>Salvar cópia do registro</button><label class="button secondary" for="restore">Abrir cópia salva<input id="restore" type="file" accept="application/json,.json" hidden></label></div>
-      <div class="actions"><button id="save-service" class="primary" type="button" disabled>Salvar e voltar à obra</button><button id="new-report" class="secondary" type="button" disabled>Novo relatório</button><button id="archive-report" class="secondary" type="button" disabled>Arquivar serviço</button><button id="remove-local" class="secondary danger" type="button" disabled>Remover deste aparelho</button></div>
+      <div class="actions"><button id="new-report" class="secondary" type="button" disabled>Novo relatório</button><button id="archive-report" class="secondary" type="button" disabled>Arquivar serviço</button><button id="remove-local" class="secondary danger" type="button" disabled>Remover deste aparelho</button></div>
       <p class="hint">Use a mesma URL e o mesmo Safari de manhã e no fim do dia. Esta página poderá ser atualizada sem instalar outro app. O MP4 exportado precisa ser salvo ou compartilhado por você.</p>
-    </section>
+    </details></section>
     </div>
     </div>
     <p id="message" class="notice" role="status" aria-live="polite" hidden></p>

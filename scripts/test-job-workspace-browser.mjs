@@ -44,7 +44,7 @@ async function setup(page) {
     if(!/^fr_[a-z_]+$/.test(name)||entries.some(([key])=>!/^p_[a-z_]+$/.test(key)))throw new Error('Unexpected RPC');
     const value=await sqlActor(id,async()=> (await db.query('select public.'+name+'('+entries.map(([key],i)=>key+'=>$'+(i+1)).join(',')+') as result',entries.map(([,v])=>typeof v==='object'&&v!==null?JSON.stringify(v):v))).rows[0].result);
     const response=await reply(value);
-    if(value?.id)broadcast(name==='fr_create_job'||name==='fr_change_job_status'?'fr_jobs':name==='fr_save_company'?'fr_companies':name==='fr_save_staff'?'fr_staff':name==='fr_save_service'?'fr_service_catalog':'fr_reports',value);
+    if(value?.id)broadcast(name==='fr_create_job'||name==='fr_change_job_status'?'fr_jobs':['fr_save_company','fr_save_company_settings'].includes(name)?'fr_companies':name==='fr_save_staff'?'fr_staff':name==='fr_save_service'?'fr_service_catalog':'fr_reports',value);
     if(name==='fr_save_task_report'||name==='fr_reopen_task'||name==='fr_add_task')broadcast('fr_tasks',{company_id:company});
     return response;
    }
@@ -119,7 +119,7 @@ try {
  await owner.reload();await owner.locator('#workspace-new-job').waitFor();
  await check('catalog setup: old schema remains readable, empty catalog directs admin to services',async()=>{
   await owner.locator('#nav-catalog').click();await owner.getByText('O catálogo aguarda a atualização do sistema.',{exact:false}).waitFor();
-  await dbChain;await db.exec(readFileSync(new URL('../supabase/migrations/20261029000000_service_catalog.sql',import.meta.url),'utf8'));
+  await dbChain;await db.exec(readFileSync(new URL('../supabase/migrations/20261029000000_service_catalog.sql',import.meta.url),'utf8'));await db.exec(readFileSync(new URL('../supabase/migrations/20261116000000_company_video_settings.sql',import.meta.url),'utf8'));
   await owner.reload();await owner.locator('#workspace-new-job').click();await owner.locator('#add-catalog-service').waitFor();assert.equal(await owner.locator('#job-dialog').isVisible(),false);
   for(const[name,instructions]of[['Self-level','Follow approved material instructions.'],['Grout','']]){
    await owner.locator('#add-catalog-service').click();await owner.locator('#workspace-form [name=name]').fill(name);await owner.locator('#workspace-form [name=instructions]').fill(instructions);await owner.locator('#workspace-form [type=submit]').click();await owner.locator('#workspace-dialog').waitFor({state:'hidden'});await owner.locator('.service-item').filter({hasText:name}).waitFor();
@@ -137,22 +137,23 @@ try {
   await owner.locator('#nav-team').click();await owner.locator('#add-staff').click();await owner.locator('#workspace-form [name=name]').fill('Jonny');await owner.locator('#workspace-form [name=code]').fill('P-001');await owner.locator('#workspace-form [name=position]').selectOption('installer');await owner.locator('#workspace-form [name=email]').fill('jonny@example.test');await owner.locator('#workspace-form [type=submit]').click();await owner.locator('#workspace-dialog').waitFor({state:'hidden'});await owner.locator('.service-item').filter({hasText:'Jonny'}).waitFor();
   await owner.locator('#nav-settings').click();await owner.locator('#company-settings [name=name]').fill('REAL CONTRACTOR');
   const logo=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64');
+  await owner.locator('#company-settings [name=videoLanguages][value=en]').uncheck();await owner.locator('#company-settings [name=videoLanguages][value=pt]').check();await owner.locator('#company-settings [name=videoLanguages][value=es]').check();
   await owner.locator('#company-settings [name=logo]').setInputFiles({name:'logo.png',mimeType:'image/png',buffer:logo});await owner.locator('#company-settings [type=submit]').click();await owner.waitForFunction(()=>document.querySelector('#message').textContent.includes('Companhia atualizada'));
   await worker.goto(base+'/relatorio/');await login(worker,'worker@example.test');assert.equal(await worker.locator('#nav-catalog').isVisible(),false);assert.equal(await worker.locator('#nav-team').isVisible(),false);assert.equal(await worker.locator('#create-cloud-job').isVisible(),false);assert.equal(await worker.locator('#new-service').isVisible(),false);
  });
  await check('worker opens job, starts planned service, company branding inherited, incomplete day stays active',async()=>{
   await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Registrar dia'}).click();
-  await worker.locator('#editor').waitFor({state:'visible'});assert.equal(await worker.locator('[name=title]').inputValue(),'Bathroom repair');assert.equal(await worker.locator('[name=title]').getAttribute('readonly'),'');assert.equal(await worker.locator('[name=company]').inputValue(),'REAL CONTRACTOR');assert.equal(await worker.locator('#company-logo').isVisible(),false);
+  await worker.locator('#editor').waitFor({state:'visible'});assert.equal(await worker.locator('#video-language-choice').isVisible(),false);assert.equal(await worker.locator('#individual-video').isVisible(),false);assert.equal(await worker.locator('[name=title]').isVisible(),false);assert.equal(await worker.locator('#record-tools').isVisible(),false);assert.equal(await worker.locator('[name=title]').inputValue(),'Bathroom repair');assert.equal(await worker.locator('[name=title]').getAttribute('readonly'),'');assert.equal(await worker.locator('[name=company]').inputValue(),'REAL CONTRACTOR');assert.equal(await worker.locator('#company-logo').isVisible(),false);
   await worker.locator('[name=percent]').fill('60');await worker.locator('[name=completed]').fill('Prepared half of the room.');
   const png=await worker.evaluate(()=>{const c=document.createElement('canvas');c.width=80;c.height=80;c.getContext('2d').fillRect(0,0,80,80);return c.toDataURL('image/png').split(',')[1];});
   await worker.locator('.gallery[data-group=after]').setInputFiles({name:'final.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});await worker.waitForFunction(()=>!document.querySelector('#report-fields').disabled);
-  await worker.waitForFunction(()=>document.querySelector('#sync-status').textContent.startsWith('Salvo no servidor'),{timeout:15000});
+  await worker.waitForFunction(()=>document.querySelector('#sync-status').textContent.startsWith('Atualização enviada'),{timeout:15000});
   await worker.locator('#save-service').click();await worker.locator('#job-workspace').waitFor({state:'visible'});assert.match(await worker.locator('.planned-task').filter({hasText:'Self-level'}).innerText(),/60%/);
  });
  await check('same-day return reuses the report; final completion reaches owner via Realtime',async()=>{
   await owner.locator('#nav-jobs').click();await owner.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();await owner.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Ver registros'}).click();await owner.locator('.task-history .daily-record').waitFor();
   await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Registrar dia'}).click();await worker.locator('.photo-tile').waitFor();assert.equal(await worker.locator('[name=percent]').inputValue(),'60');
-  await worker.locator('#complete-task').check();await worker.locator('[name=completed]').fill('Self-level finished.');await worker.waitForFunction(()=>document.querySelector('#sync-status').textContent.startsWith('Salvo no servidor'),{timeout:15000});
+  await worker.locator('#complete-task').check();await worker.locator('[name=completed]').fill('Self-level finished.');await worker.waitForFunction(()=>document.querySelector('#sync-status').textContent.startsWith('Atualização enviada'),{timeout:15000});
   await owner.locator('.planned-task').filter({hasText:'Self-level'}).getByText('Concluído ✓',{exact:true}).waitFor({timeout:15000});
   await worker.locator('#save-service').click();await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByText('Concluído ✓',{exact:true}).waitFor();
   const counts=await sqlActor(adminId,async()=> (await db.query('select count(*)::int as n from public.fr_reports where task_id is not null')).rows[0]);assert.equal(counts.n,1);
@@ -160,10 +161,10 @@ try {
  });
  await check('next task is independent; authenticated reload returns to jobs, photos remain server-side',async()=>{
   await worker.locator('.planned-task').filter({hasText:'Grout'}).getByRole('button',{name:'Registrar dia'}).click();await worker.waitForFunction(()=>document.querySelector('[name=scope]').value==='Bathroom · Grout');assert.equal(await worker.locator('[name=scope]').inputValue(),'Bathroom · Grout');assert.equal(await worker.locator('.photo-tile').count(),0);
-  await worker.waitForFunction(()=>document.querySelector('#sync-status').textContent.startsWith('Salvo no servidor'),{timeout:15000});
+  await worker.waitForFunction(()=>document.querySelector('#sync-status').textContent.startsWith('Atualização enviada'),{timeout:15000});
   await worker.reload();await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).waitFor();
   assert.equal(await worker.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-  await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Ver registros'}).click();await worker.locator('.task-history .daily-record').getByRole('button',{name:'Fotos e vídeo'}).click();await worker.locator('.photo-tile').waitFor();
+  await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Ver registros'}).click();await worker.locator('.task-history .daily-record').getByRole('button',{name:'Ver registro'}).click();await worker.locator('.photo-tile').waitFor();
   assert.equal(await worker.locator('[name=percent]').inputValue(),'100');assert.equal(await worker.locator('#complete-task').isChecked(),true);
  });
  await check('logout clears device shared copies and login recovers private photos',async()=>{
@@ -173,7 +174,7 @@ try {
   assert.equal(await worker.locator('#app-content').isVisible(),false);assert.equal(await worker.locator('#show-services').isVisible(),false);assert.equal(await worker.locator('#service-library').isVisible(),false);
   await worker.reload();await worker.locator('#cloud-login').waitFor({state:'visible'});assert.equal(await worker.locator('#app-content').isVisible(),false);
   await login(worker,'worker@example.test');await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();
-  await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Ver registros'}).click();await worker.locator('.task-history .daily-record').getByRole('button',{name:'Fotos e vídeo'}).click();await worker.locator('.photo-tile').waitFor();
+  await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Ver registros'}).click();await worker.locator('.task-history .daily-record').getByRole('button',{name:'Ver registro'}).click();await worker.locator('.photo-tile').waitFor();
   assert.equal(await worker.locator('[name=percent]').inputValue(),'100');assert.equal(await worker.locator('[name=company]').inputValue(),'REAL CONTRACTOR');
  });
  await check('catalog changes affect new selections while existing execution keeps its original scope',async()=>{
@@ -185,6 +186,20 @@ try {
  });
  assert.deepEqual(errors,[]);assert.ok(images.size>=3);assert.ok(!requests.some(path=>path.includes('/object/public/')));
  await owner.locator('#nav-jobs').click();await owner.locator('.job-card').first().waitFor();await owner.screenshot({path:fileURLToPath(new URL('../.local/jobs-workspace-mobile.png',import.meta.url)),fullPage:true});await worker.locator('#save-service').click();await worker.locator('#job-workspace').waitFor({state:'visible'});await worker.screenshot({path:fileURLToPath(new URL('../.local/job-detail-mobile.png',import.meta.url)),fullPage:true});
+ await check('company output policy generates job-wide videos without individual author or worker choices',async()=>{
+  await owner.locator('#nav-jobs').click();await owner.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();
+  const snapshot=await owner.evaluate(()=>FieldReportJobVideo.snapshot(cloudData,cloudData.jobs.find(job=>job.name==='Bathroom repair').id));
+  assert.equal(snapshot.tasks.length,3);assert.equal(snapshot.rooms.length,2);assert.deepEqual(snapshot.languages,['pt','es']);assert.equal(snapshot.progress,33);assert.ok(snapshot.reports.some(item=>item.report.photoCount));
+  assert.equal(await worker.locator('#generate-job-video').isVisible(),false);
+  if(await owner.evaluate(()=>['video/mp4;codecs=avc1.42E01F','video/mp4;codecs=avc1','video/mp4'].some(type=>MediaRecorder.isTypeSupported(type)))){
+   await owner.locator('#generate-job-video').click();await owner.locator('#job-video-results a[data-video-language]').nth(1).waitFor({timeout:100000});
+   assert.deepEqual(await owner.locator('#job-video-results a').evaluateAll(links=>links.map(link=>link.dataset.videoLanguage)),['pt','es']);
+   await owner.waitForFunction(()=>[...document.querySelectorAll('#job-video-results video')].every(video=>video.readyState>=1&&video.videoWidth===720&&video.videoHeight===1280));
+   const videos=await owner.evaluate(()=>jobVideo.files.map(file=>({name:file.name,type:file.type,size:file.size})));assert.equal(videos.length,2);assert.ok(videos.every(file=>file.type==='video/mp4'&&file.size>1000&&file.name.includes('Bathroom-repair')));
+   assert.equal(await owner.locator('#job-video-panel select').count(),0);
+   await owner.screenshot({path:fileURLToPath(new URL('../.local/job-video-overview.png',import.meta.url)),fullPage:true});
+  }else console.log('INFO MP4 encoder unavailable on this browser; snapshot and company policy verified, generation requires a compatible browser.');
+ });
  await check('sign-out in another tab immediately locks an open report',async()=>{
   const secondTab=await workerContext.newPage();await setup(secondTab);await secondTab.goto(base+'/relatorio/');await secondTab.locator('.job-card').first().waitFor();
   await secondTab.evaluate(async()=>{const client=FieldReportSupabase.createClient('https://field-report-test.supabase.co','sb_publishable_test_only',{auth:{storageKey:'field-report-auth-field-report-test.supabase.co'}});await client.auth.signOut({scope:'local'});});
