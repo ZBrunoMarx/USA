@@ -9,6 +9,7 @@ const groups = [
 const names = ['title', 'date', 'author', 'scope', 'language', 'percent', 'company', 'completed', 'remaining'];
 const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date());
 const defaults = () => ({ title: '', date: today(), author: cloudData?.user?.name || 'Bruno', scope: 'Grouting', language: 'en', percent: '', company: '', completed: '', remaining: '' });
+let dayStage = 'before';
 let photos = { before: [], after: [], pending: [] }, logo = null, library = null, saveTimer, saveChain = Promise.resolve();
 let busy = false, importing = false, controller = null, videoFile = null, videoURL = null, wakeLock = null;
 let recordId = crypto.randomUUID(), localRevision = 0, recordStatus = 'active', cloud = null;
@@ -25,7 +26,7 @@ const workspace = new FieldReportWorkspace({
   busy: () => busy || importing || publishing || jobVideo.busy,
   leave: () => { jobVideo.hide(); return saveNow(); }, reports: () => showLibrary(), open: id => openRecord(id),
   video: job => jobVideo.generate(job.id),
-  start: (job, task) => startTaskReport(job, task), refresh: () => refreshShared(),
+  start: (job, task, stage) => startTaskReport(job, task, stage), refresh: () => refreshShared(),
   prepareImage: (file, isLogo) => prepareImage(file, isLogo), message: (text, error) => message(text,error), enter: () => enterShared(),
 });
 function setAppAccess(allowed) {
@@ -106,6 +107,25 @@ function slides(data) {
   let time = 0; for (const slide of list) { slide.start = time; time += slide.duration; }
   return { list, duration: time, data };
 }
+const stagedDay = () => workspace.enabled && !!cloud?.taskId && canEdit() && recordStatus !== 'archived' && !cloud?.complete && values().date === today();
+function selectDayStage(stage) {
+  dayStage = stage;
+  if (stage === 'after' && !photos.before.length && !photos.after.length) { dayStage = 'before'; message('Registre primeiro a foto de início do dia. Depois, volte para informar o final.'); }
+  update();
+}
+function updateDayStage() {
+  const staged = stagedDay(), start = dayStage === 'before';
+  $('#day-stage').hidden = !staged;
+  $('#day-stage-title').textContent = start ? 'Informar início do dia' : 'Informar final do dia';
+  $('#day-stage-hint').textContent = start ? 'Fotografe como está antes de começar. No final do dia, volte a este mesmo serviço para registrar o resultado.' : 'Fotografe o resultado de hoje, mesmo incompleto. Informe o avanço e qualquer impedimento, se quiser. Encerrar o dia não conclui o serviço.';
+  for (const stage of ['before','after']) { const button = $('#day-' + stage);button.className = dayStage === stage ? 'primary' : 'secondary';button.setAttribute('aria-pressed',String(dayStage === stage));button.disabled = busy || importing || publishing || (stage === 'after' && !photos.before.length && !photos.after.length); }
+  for (const element of document.querySelectorAll('.photo-group')) element.hidden = staged && (start ? element.dataset.phase !== 'before' : element.dataset.phase === 'before');
+  for (const id of ['day-percent','day-percent-hint','day-notes']) $('#' + id).hidden = staged && start;
+  $('#complete-task-label').hidden = $('#completion-hint').hidden = !cloud?.taskId || (staged && start);
+  $('#day-photo-title').textContent = staged ? (start ? 'Foto de início do dia' : 'Foto de final do dia') : 'Fotos do registro';
+  $('#day-photo-hint').textContent = staged ? (start ? 'Registre a condição da superfície antes do trabalho.' : 'Registre o resultado e, se necessário, fotos das pendências.') : 'Início, resultado e pendências, preservados neste registro.';
+  if (staged) $('#save-service').textContent = start ? 'Salvar início do dia' : 'Salvar final do dia';
+}
 function update() {
   const number = countPhotos(), plan = slides(values());
   $('#film-summary').textContent = number ? number + ' foto(s) · cerca de ' + Math.ceil(plan.duration) + ' segundos · vertical 720p' : 'Adicione suas fotos para preparar a apresentação.';
@@ -127,7 +147,7 @@ function update() {
   $('#cloud-job').disabled = !!cloud?.revision || publishing || !canEdit();
   $('#reload-remote').disabled = busy || importing || publishing;
   $('#readonly-notice').hidden = canEdit();
-  $('#readonly-notice').textContent = historicalCycle() ? 'Registro de uma execução anterior. Fotos e vídeo continuam disponíveis; para trabalhar no ciclo atual, abra a obra e escolha Registrar dia.' : 'Você está consultando o relatório de outro profissional. Pode ver as fotos e gerar o vídeo.';
+  $('#readonly-notice').textContent = historicalCycle() ? 'Registro de uma execução anterior. Fotos e relatos continuam disponíveis; para trabalhar no ciclo atual, abra a obra e informe o início do dia.' : 'Você está consultando o relatório de outro profissional. Pode consultar as fotos e os relatos.';
   lockFields();
   $('#individual-video').hidden = !!cloudData;
   $('#video-language-choice').hidden = !!cloudData;
@@ -144,6 +164,7 @@ function update() {
   $('#publish-report').textContent = plannedContext ? 'Tentar enviar novamente' : 'Publicar atualização';
   $('#record-tools').hidden = !!cloudData && cloudData.user.role !== 'admin';
   $('#language-hint').textContent = form.elements.language.value === 'en' ? 'As legendas fixas serão em inglês. Escreva os textos abaixo em inglês, se quiser incluí-los.' : 'As legendas fixas e os textos do vídeo podem ficar em português.';
+  updateDayStage();
   const differentDay = values().date && values().date !== today();
   $('#date-notice').hidden = !differentDay;
   $('#date-notice').textContent = differentDay ? 'Confira a data: este registro está em ' + values().date + ', diferente de hoje. Para outro dia de trabalho, inicie um Novo relatório. O serviço atual continuará na sua lista.' : '';
@@ -152,7 +173,7 @@ function renderPhotos() {
   for (const url of [...urls]) if (url !== videoURL) revoke(url);
   $('#photo-groups').innerHTML = groups.map(group => {
     const items = photos[group.id];
-    return '<section class="photo-group"><div class="group-heading"><h3>' + group.title + '</h3><span>' + items.length + '/4</span></div><p>' + group.hint + '</p><div class="actions"><button type="button" class="secondary camera" data-group="' + group.id + '">Tirar foto</button><label class="button secondary">Escolher fotos<input class="gallery" data-group="' + group.id + '" type="file" accept="image/*,.heic,.heif" multiple hidden></label><input class="camera-input" data-group="' + group.id + '" type="file" accept="image/*" capture="environment" hidden></div><div class="photo-list">' +
+    return '<section class="photo-group" data-phase="' + group.id + '"><div class="group-heading"><h3>' + group.title + '</h3><span>' + items.length + '/4</span></div><p>' + group.hint + '</p><div class="actions"><button type="button" class="secondary camera" data-group="' + group.id + '">Tirar foto</button><label class="button secondary">Escolher fotos<input class="gallery" data-group="' + group.id + '" type="file" accept="image/*,.heic,.heif" multiple hidden></label><input class="camera-input" data-group="' + group.id + '" type="file" accept="image/*" capture="environment" hidden></div><div class="photo-list">' +
       items.map((photo, index) => '<div class="photo-tile"><img src="' + objectURL(photo.blob) + '" alt="' + group.title + ' · foto ' + (index + 1) + '"><div><span>Foto ' + (index + 1) + '</span>' + (index ? '<button type="button" data-up="' + photo.id + '" data-group="' + group.id + '" aria-label="Mover foto ' + (index + 1) + ' para antes">↑</button>' : '') + '<button type="button" class="remove" data-remove="' + photo.id + '" data-group="' + group.id + '" aria-label="Remover foto ' + (index + 1) + ' de ' + group.title + '">Remover</button></div></div>').join('') + '</div></section>';
   }).join('');
   $('#logo-preview').innerHTML = logo ? '<img src="' + objectURL(logo.blob) + '" alt="Logo da empresa selecionada">' : '';
@@ -368,13 +389,14 @@ function activate(record) {
   setValues(record.fields || defaults()); photos = { before: [], after: [], pending: [] };
   for (const group of groups) if (Array.isArray(record.photos?.[group.id])) photos[group.id] = record.photos[group.id].filter(item => item.blob instanceof Blob).slice(0, 4);
   logo = record.logo?.blob instanceof Blob ? record.logo : null;
+  dayStage = photos.before.length || photos.after.length ? 'after' : 'before';
   invalidate(false); renderPhotos(); showEditor(); refreshCloudControls();
 }
-function showEditor() { jobVideo.hide(); workspace.hide(); libraryVisible = false; $('#editor').hidden = false; $('#service-library').hidden = true; }
+function showEditor() { jobVideo.hide(); workspace.hide(); workspace.selectNav(libraryVisible ? 'reports' : 'jobs'); libraryVisible = false; $('#editor').hidden = false; $('#service-library').hidden = true; }
 async function showLibrary() {
   if (busy || importing || publishing) return;
   if (!await saveNow()) return;
-  jobVideo.hide(); workspace.hide(); libraryVisible = true; $('#editor').hidden = true; $('#service-library').hidden = false;
+  jobVideo.hide(); workspace.hide(); workspace.selectNav('reports'); libraryVisible = true; $('#editor').hidden = true; $('#service-library').hidden = false;
   await renderLibrary(); window.scrollTo(0, 0);
 }
 async function newRecord(ask = false) {
@@ -561,7 +583,10 @@ function wireWorkspace() {
     catch (error) { $('#job-form-status').textContent = error.message; } finally { button.disabled = false; }
   }); };
   $('#show-services').onclick = () => void runTask(() => workspace.enabled ? workspace.show(cloud?.jobId ? 'job' : 'jobs',cloud?.jobId) : showLibrary());
+  $('#day-before').onclick = () => selectDayStage('before');
+  $('#day-after').onclick = () => selectDayStage('after');
   $('#save-service').onclick = () => void runTask(async () => {
+    if (stagedDay() && !photos[dayStage].length) { message(dayStage === 'before' ? 'Adicione uma foto de início do dia para salvar.' : 'Adicione uma foto do resultado para salvar o final do dia.',true); return; }
     if (!await saveNow()) return;
     if (workspace.enabled && cloud?.dirty && !publishing) { await publishRecord(true); if (syncError || conflict || (navigator.onLine && cloud?.dirty)) return; }
     if (workspace.enabled) await workspace.show(cloud?.jobId ? 'job' : 'jobs',cloud?.jobId); else await showLibrary();
@@ -668,19 +693,21 @@ function refreshTaskControls() {
   $('#task-instructions').textContent = task?.instructions || '';
   $('#complete-task-label').hidden = $('#completion-hint').hidden = !task;
   $('#complete-task').checked = !!cloud?.complete;
+  updateDayStage();
   if (workspace.enabled) $('#show-services').textContent = cloud?.jobId ? '← Obra' : '← Obras';
 }
-async function startTaskReport(job, task) {
+async function startTaskReport(job, task, stage = 'before') {
   if (!task || task.status === 'completed' || job.status === 'delivered') throw new Error('Este serviço não está aberto para novos registros.');
   if (busy || importing || publishing || openingTask || !await saveNow()) return;
   openingTask = true;
   try {
   const local = library ? (await library.list()).find(item => item.cloud?.taskId === task.id && item.cloud?.taskCycle === task.cycle && item.cloud?.ownerId === cloudData.user.id && item.date === today() && item.status === 'active' && !item.cloud.complete) : null;
   const remote = remoteReports.find(item => item.taskId === task.id && item.taskCycle === task.cycle && item.ownerId === cloudData.user.id && item.fields.date === today() && item.status === 'active' && !item.complete);
-  if (local || remote) { await openRecord((local || remote).id); return; }
+  if (local || remote) { await openRecord((local || remote).id); selectDayStage(stage); return; }
+  if (stage === 'after') throw new Error('Ainda não há um início registrado hoje. Abra Informar início do dia e registre a foto antes do trabalho.');
   const companyLogo = await sync.companyLogo(cloudData.company);
   activate({ id: crypto.randomUUID(), status: 'active', fields: { ...defaults(), title: job.name.slice(0,70), scope: ((task.room ? task.room + ' · ' : '') + task.name).slice(0,90), percent: String(task.percent), company: (cloudData.company?.name || '').slice(0,55) }, photos: {}, logo: companyLogo ? { ...companyLogo, id: crypto.randomUUID() } : null, cloud: { jobId: job.id, taskId: task.id, taskCycle: task.cycle, complete: false, revision: 0, ownerId: cloudData.user.id, canEdit: true, dirty: true, backendId: sync.backendId } });
-  await saveNow(); refreshCloudControls(); message('Registre as fotos e o trabalho de hoje. A obra e o serviço já estão selecionados.'); window.scrollTo(0,0);
+  await saveNow(); refreshCloudControls(); selectDayStage(stage); message('Registre a foto de início. Para encerrar o dia, volte pela opção Informar final do dia.'); window.scrollTo(0,0);
   } finally { openingTask = false; }
 }
 void boot();

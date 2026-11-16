@@ -45,3 +45,11 @@ A seleção estruturada de superfícies/agrupamentos, o planejamento de equipe p
 ## Validação
 
 Testes SQL verificam preservação dos dados, padrão inicial, permissões, isolamento, idiomas inválidos e conflitos de revisão. Testes de navegador verificam que o profissional não recebe opções de vídeo, que configurações da companhia são salvas e que a geração da obra entrega as versões definidas sem seletores no fluxo. Testes de snapshot verificam união de profissionais, separação entre obras, exclusão de ciclos anteriores e avanço agregado.
+
+## Revisão de navegação e momentos do dia — 16/11/2026
+
+O menu fica em uma sidebar à esquerda no computador; no celular, o botão Menu abre a mesma navegação em painel lateral. Toda seção, incluindo Registros, indica a seleção em verde e com aria-current. As opções administrativas continuam restritas ao papel existente.
+
+Cada serviço oferece Informar início do dia e Informar final do dia. No início aparecem somente as fotos iniciais; percentual, conclusão, relato final e fotos finais ficam fora desse momento. Após salvar uma foto inicial, o profissional retorna ao serviço e informa o final, com foto do resultado, percentual e observações opcionais. As duas etapas reutilizam o mesmo registro do profissional naquele dia. A data pode avançar para outro dia sem alterar o registro anterior. Não há bloqueio por horário do relógio: a pessoa escolhe o momento real do trabalho. Consultas históricas preservam todas as fotos. Registros antigos que já têm fotos finais continuam acessíveis, sem inventar fotos iniciais.
+
+A saída do dia continua independente da conclusão total do serviço. Esta revisão separa os momentos no fluxo atual, sem afirmar que o cadastro estruturado de superfícies esteja implementado.

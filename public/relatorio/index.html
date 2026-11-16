@@ -16,7 +16,7 @@
   <script defer src="./report.js"></script>
 </head>
 <body class="access-screen">
-  <header class="top"><strong>FIELD REPORT</strong><span>OBRAS E EXECUÇÃO · v3.3</span></header>
+  <header class="top"><strong>FIELD REPORT</strong><span>OBRAS E EXECUÇÃO · v3.4</span></header>
   <main>
     <section class="card" id="cloud-panel">
       <h2 id="connection-title">Acesse sua companhia</h2>
@@ -39,6 +39,7 @@
       <p id="storage-warning" class="notice error" hidden></p>
     </section>
 
+    <button id="workspace-menu-toggle" class="secondary" type="button" aria-controls="workspace-nav" aria-expanded="false" hidden>☰ Menu</button><button id="workspace-scrim" type="button" aria-label="Fechar menu" tabindex="-1"></button>
     <nav id="workspace-nav" class="workspace-nav" aria-label="Navegação da companhia" hidden><button id="nav-jobs" type="button" class="primary">Obras</button><button id="nav-reports" type="button" class="secondary">Registros</button><button id="nav-catalog" type="button" class="secondary" hidden>Serviços</button><button id="nav-team" type="button" class="secondary" hidden>Equipe</button><button id="nav-settings" type="button" class="secondary" hidden>Companhia</button></nav>
     <section id="job-workspace" hidden aria-live="polite"></section>
     <section id="job-video-panel" hidden aria-live="polite"></section>
@@ -64,6 +65,7 @@
       <div class="actions"><button id="publish-report" type="button" class="primary">Publicar atualização</button><button id="reload-remote" type="button" class="secondary" hidden>Preservar cópia e abrir versão do servidor</button></div>
       <p class="hint" id="sharing-instructions">Após vincular a obra, as mudanças são enviadas automaticamente quando houver conexão. Outros usuários com acesso à companhia podem acompanhar. Os percentuais são informados pela equipe.</p>
     </section>
+    <section id="day-stage" class="card" hidden><h2 id="day-stage-title">Informar início do dia</h2><p id="day-stage-hint"></p><div class="actions"><button id="day-before" class="primary" type="button">Informar início do dia</button><button id="day-after" class="secondary" type="button">Informar final do dia</button></div></section>
     <form id="report-form">
       <fieldset id="report-fields" disabled>
         <section class="card">
@@ -77,9 +79,9 @@
           <label data-context-field>Ambiente / serviço apresentado<input name="scope" maxlength="90" placeholder="Bathroom floor · grouting"></label>
           <div class="row">
             <label id="video-language-choice">Legendas do vídeo<select name="language"><option value="en">Inglês</option><option value="pt">Português</option></select></label>
-            <label>Conclusão deste serviço (%) <span class="optional">opcional</span><input name="percent" type="number" min="0" max="100" step="1" inputmode="numeric" placeholder="Ex.: 80"></label>
+            <label id="day-percent">Conclusão deste serviço (%) <span class="optional">opcional</span><input name="percent" type="number" min="0" max="100" step="1" inputmode="numeric" placeholder="Ex.: 80"></label>
           </div>
-          <p class="hint">O percentual é sua estimativa para o serviço indicado acima. Não é uma medição por IA nem a conclusão da obra inteira.</p>
+          <p id="day-percent-hint" class="hint">O percentual é sua estimativa para o serviço indicado acima. Não é uma medição por IA nem a conclusão da obra inteira.</p>
           <label data-personal-branding>Empresa responsável <span class="optional">opcional</span><input name="company" maxlength="55" placeholder="Nome da empresa do seu chefe"></label>
           <label data-personal-branding>Logo da empresa <span class="optional">opcional</span><input id="company-logo" type="file" accept="image/*,.heic,.heif"></label>
           <div data-personal-branding id="logo-preview"></div><button data-personal-branding id="remove-logo" type="button" class="secondary" hidden>Remover logo</button>
@@ -87,12 +89,12 @@
         </section>
 
         <section class="card">
-          <div class="section-title"><span class="step">02</span><div><h2>Conte o dia com fotos</h2><p>Até 4 por etapa. A imagem inteira aparece no vídeo.</p></div></div>
+          <div class="section-title"><span class="step">02</span><div><h2 id="day-photo-title">Conte o dia com fotos</h2><p id="day-photo-hint">Até 4 fotos por etapa.</p></div></div>
           <div id="photo-groups"></div>
           <p id="photo-status" class="hint" role="status" aria-live="polite"></p>
         </section>
 
-        <section class="card">
+        <section class="card" id="day-notes">
           <div class="section-title"><span class="step">03</span><div><h2>Deixe o resultado claro</h2><p>Conte à equipe o que foi feito e o que impediu o avanço.</p></div></div>
           <p id="language-hint" class="hint"></p>
           <label>O que foi feito hoje<textarea name="completed" rows="2" maxlength="220" placeholder="Grouted the bathroom floor."></textarea></label>

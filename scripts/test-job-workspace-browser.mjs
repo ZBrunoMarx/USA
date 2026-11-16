@@ -91,6 +91,7 @@ try {
  browser=await chromium.launch({executablePath:process.env.SKYTILE_CHROMIUM || '/usr/bin/chromium',args:['--no-sandbox']});
  const ownerContext=await browser.newContext({...devices['iPhone 13'],serviceWorkers:'block'}),workerContext=await browser.newContext({...devices['iPhone 13'],serviceWorkers:'block'});
  const owner=await ownerContext.newPage(),worker=await workerContext.newPage();await setup(owner);await setup(worker);
+ async function navigate(page,name){ if(await page.locator('#workspace-menu-toggle').isVisible())await page.locator('#workspace-menu-toggle').click();await page.locator('#nav-'+name).click(); }
  await check('login gate hides the app before validation, even with a saved local draft',async()=>{
   const html = await (await owner.request.get(base+'/relatorio/')).text();
   assert.match(html,/<div id="app-content" hidden inert>/);
@@ -113,18 +114,18 @@ try {
  });
  await check('before migration: jobs open with update guidance, earlier reports remain accessible',async()=>{
   await owner.goto(base+'/relatorio/');await login(owner,'owner@example.test');await owner.getByRole('link',{name:'Atualizar banco'}).waitFor();
-  await owner.locator('#nav-reports').click();await owner.locator('.service-item').filter({hasText:'Existing report'}).waitFor();
+  await navigate(owner,'reports');await owner.locator('.service-item').filter({hasText:'Existing report'}).waitFor();assert.equal(await owner.locator('#nav-reports').getAttribute('aria-current'),'page');assert.equal(await owner.locator('#nav-jobs').getAttribute('aria-current'),null);
  });
  await dbChain;await db.exec(readFileSync(new URL('../deploy/supabase/04-job-workspace.sql',import.meta.url),'utf8'));
  await owner.reload();await owner.locator('#workspace-new-job').waitFor();
  await check('catalog setup: old schema remains readable, empty catalog directs admin to services',async()=>{
-  await owner.locator('#nav-catalog').click();await owner.getByText('O catálogo aguarda a atualização do sistema.',{exact:false}).waitFor();
+  await navigate(owner,'catalog');await owner.getByText('O catálogo aguarda a atualização do sistema.',{exact:false}).waitFor();
   await dbChain;await db.exec(readFileSync(new URL('../supabase/migrations/20261029000000_service_catalog.sql',import.meta.url),'utf8'));await db.exec(readFileSync(new URL('../supabase/migrations/20261116000000_company_video_settings.sql',import.meta.url),'utf8'));
   await owner.reload();await owner.locator('#workspace-new-job').click();await owner.locator('#add-catalog-service').waitFor();assert.equal(await owner.locator('#job-dialog').isVisible(),false);
   for(const[name,instructions]of[['Self-level','Follow approved material instructions.'],['Grout','']]){
    await owner.locator('#add-catalog-service').click();await owner.locator('#workspace-form [name=name]').fill(name);await owner.locator('#workspace-form [name=instructions]').fill(instructions);await owner.locator('#workspace-form [type=submit]').click();await owner.locator('#workspace-dialog').waitFor({state:'hidden'});await owner.locator('.service-item').filter({hasText:name}).waitFor();
   }
-  await owner.locator('#nav-jobs').click();
+  await navigate(owner,'jobs');
  });
  await check('admin creates repair with two planned room services atomically',async()=>{
   await owner.locator('#workspace-new-job').click();await owner.locator('#cloud-job-form [name=name]').fill('Bathroom repair');await owner.locator('#cloud-job-form [name=kind]').selectOption('repair');
@@ -134,25 +135,31 @@ try {
   assert.equal(await owner.locator('.planned-task').count(),2);assert.match(await owner.locator('#job-workspace').innerText(),/Reparo contratado/);
  });
  await check('team and company settings persist; worker has no admin navigation',async()=>{
-  await owner.locator('#nav-team').click();await owner.locator('#add-staff').click();await owner.locator('#workspace-form [name=name]').fill('Jonny');await owner.locator('#workspace-form [name=code]').fill('P-001');await owner.locator('#workspace-form [name=position]').selectOption('installer');await owner.locator('#workspace-form [name=email]').fill('jonny@example.test');await owner.locator('#workspace-form [type=submit]').click();await owner.locator('#workspace-dialog').waitFor({state:'hidden'});await owner.locator('.service-item').filter({hasText:'Jonny'}).waitFor();
-  await owner.locator('#nav-settings').click();await owner.locator('#company-settings [name=name]').fill('REAL CONTRACTOR');
+  await navigate(owner,'team');await owner.locator('#add-staff').click();await owner.locator('#workspace-form [name=name]').fill('Jonny');await owner.locator('#workspace-form [name=code]').fill('P-001');await owner.locator('#workspace-form [name=position]').selectOption('installer');await owner.locator('#workspace-form [name=email]').fill('jonny@example.test');await owner.locator('#workspace-form [type=submit]').click();await owner.locator('#workspace-dialog').waitFor({state:'hidden'});await owner.locator('.service-item').filter({hasText:'Jonny'}).waitFor();
+  await navigate(owner,'settings');await owner.locator('#company-settings [name=name]').fill('REAL CONTRACTOR');
   const logo=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=','base64');
   await owner.locator('#company-settings [name=videoLanguages][value=en]').uncheck();await owner.locator('#company-settings [name=videoLanguages][value=pt]').check();await owner.locator('#company-settings [name=videoLanguages][value=es]').check();
   await owner.locator('#company-settings [name=logo]').setInputFiles({name:'logo.png',mimeType:'image/png',buffer:logo});await owner.locator('#company-settings [type=submit]').click();await owner.waitForFunction(()=>document.querySelector('#message').textContent.includes('Companhia atualizada'));
   await worker.goto(base+'/relatorio/');await login(worker,'worker@example.test');assert.equal(await worker.locator('#nav-catalog').isVisible(),false);assert.equal(await worker.locator('#nav-team').isVisible(),false);assert.equal(await worker.locator('#create-cloud-job').isVisible(),false);assert.equal(await worker.locator('#new-service').isVisible(),false);
  });
  await check('worker opens job, starts planned service, company branding inherited, incomplete day stays active',async()=>{
-  await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Registrar dia'}).click();
+  await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Informar início do dia'}).click();
   await worker.locator('#editor').waitFor({state:'visible'});assert.equal(await worker.locator('#video-language-choice').isVisible(),false);assert.equal(await worker.locator('#individual-video').isVisible(),false);assert.equal(await worker.locator('[name=title]').isVisible(),false);assert.equal(await worker.locator('#record-tools').isVisible(),false);assert.equal(await worker.locator('[name=title]').inputValue(),'Bathroom repair');assert.equal(await worker.locator('[name=title]').getAttribute('readonly'),'');assert.equal(await worker.locator('[name=company]').inputValue(),'REAL CONTRACTOR');assert.equal(await worker.locator('#company-logo').isVisible(),false);
-  await worker.locator('[name=percent]').fill('60');await worker.locator('[name=completed]').fill('Prepared half of the room.');
+  assert.equal(await worker.locator('.photo-group[data-phase=before]').isVisible(),true);assert.equal(await worker.locator('.photo-group[data-phase=after]').isVisible(),false);assert.equal(await worker.locator('#day-after').isEnabled(),false);assert.equal(await worker.locator('[name=percent]').isVisible(),false);await worker.locator('#save-service').click();assert.equal(await worker.locator('#editor').isVisible(),true);
+  await worker.evaluate(()=>window.scrollTo(0,0));await worker.screenshot({path:fileURLToPath(new URL('../.local/day-start-mobile.png',import.meta.url)),fullPage:true});
   const png=await worker.evaluate(()=>{const c=document.createElement('canvas');c.width=80;c.height=80;c.getContext('2d').fillRect(0,0,80,80);return c.toDataURL('image/png').split(',')[1];});
+  await worker.locator('.gallery[data-group=before]').setInputFiles({name:'start.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});await worker.waitForFunction(()=>!document.querySelector('#report-fields').disabled);await worker.locator('#save-service').click();await worker.locator('#job-workspace').waitFor({state:'visible'});
+  await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Informar final do dia'}).click();
+  await worker.locator('.photo-group[data-phase=after]').waitFor({state:'visible'});assert.equal(await worker.locator('.photo-group[data-phase=before]').isVisible(),false);assert.equal(await worker.locator('.photo-group[data-phase=after]').isVisible(),true);assert.equal(await worker.locator('.photo-tile').count(),1);
+  await worker.screenshot({path:fileURLToPath(new URL('../.local/day-end-mobile.png',import.meta.url)),fullPage:true});
+  await worker.locator('[name=percent]').fill('60');await worker.locator('[name=completed]').fill('Prepared half of the room.');
   await worker.locator('.gallery[data-group=after]').setInputFiles({name:'final.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});await worker.waitForFunction(()=>!document.querySelector('#report-fields').disabled);
   await worker.waitForFunction(()=>document.querySelector('#sync-status').textContent.startsWith('Atualização enviada'),{timeout:15000});
   await worker.locator('#save-service').click();await worker.locator('#job-workspace').waitFor({state:'visible'});assert.match(await worker.locator('.planned-task').filter({hasText:'Self-level'}).innerText(),/60%/);
  });
  await check('same-day return reuses the report; final completion reaches owner via Realtime',async()=>{
-  await owner.locator('#nav-jobs').click();await owner.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();await owner.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Ver registros'}).click();await owner.locator('.task-history .daily-record').waitFor();
-  await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Registrar dia'}).click();await worker.locator('.photo-tile').waitFor();assert.equal(await worker.locator('[name=percent]').inputValue(),'60');
+  await navigate(owner,'jobs');await owner.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();await owner.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Ver registros'}).click();await owner.locator('.task-history .daily-record').waitFor();
+  await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Informar final do dia'}).click();await worker.locator('.photo-tile:visible').waitFor();assert.equal(await worker.locator('[name=percent]').inputValue(),'60');
   await worker.locator('#complete-task').check();await worker.locator('[name=completed]').fill('Self-level finished.');await worker.waitForFunction(()=>document.querySelector('#sync-status').textContent.startsWith('Atualização enviada'),{timeout:15000});
   await owner.locator('.planned-task').filter({hasText:'Self-level'}).getByText('Concluído ✓',{exact:true}).waitFor({timeout:15000});
   await worker.locator('#save-service').click();await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByText('Concluído ✓',{exact:true}).waitFor();
@@ -160,11 +167,12 @@ try {
   assert.match(await worker.locator('#job-workspace').innerText(),/50% de avanço informado/);
  });
  await check('next task is independent; authenticated reload returns to jobs, photos remain server-side',async()=>{
-  await worker.locator('.planned-task').filter({hasText:'Grout'}).getByRole('button',{name:'Registrar dia'}).click();await worker.waitForFunction(()=>document.querySelector('[name=scope]').value==='Bathroom · Grout');assert.equal(await worker.locator('[name=scope]').inputValue(),'Bathroom · Grout');assert.equal(await worker.locator('.photo-tile').count(),0);
+  await worker.locator('.planned-task').filter({hasText:'Grout'}).getByRole('button',{name:'Informar final do dia'}).click();await worker.locator('#message').filter({hasText:'Ainda não há um início registrado hoje'}).waitFor();assert.equal(await worker.locator('#job-workspace').isVisible(),true);
+  await worker.locator('.planned-task').filter({hasText:'Grout'}).getByRole('button',{name:'Informar início do dia'}).click();await worker.waitForFunction(()=>document.querySelector('[name=scope]').value==='Bathroom · Grout');assert.equal(await worker.locator('[name=scope]').inputValue(),'Bathroom · Grout');assert.equal(await worker.locator('.photo-tile').count(),0);
   await worker.waitForFunction(()=>document.querySelector('#sync-status').textContent.startsWith('Atualização enviada'),{timeout:15000});
   await worker.reload();await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).waitFor();
   assert.equal(await worker.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);
-  await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Ver registros'}).click();await worker.locator('.task-history .daily-record').getByRole('button',{name:'Ver registro'}).click();await worker.locator('.photo-tile').waitFor();
+  await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Ver registros'}).click();await worker.locator('.task-history .daily-record').getByRole('button',{name:'Ver registro'}).click();await worker.locator('.photo-tile').first().waitFor();
   assert.equal(await worker.locator('[name=percent]').inputValue(),'100');assert.equal(await worker.locator('#complete-task').isChecked(),true);
  });
  await check('logout clears device shared copies and login recovers private photos',async()=>{
@@ -174,20 +182,21 @@ try {
   assert.equal(await worker.locator('#app-content').isVisible(),false);assert.equal(await worker.locator('#show-services').isVisible(),false);assert.equal(await worker.locator('#service-library').isVisible(),false);
   await worker.reload();await worker.locator('#cloud-login').waitFor({state:'visible'});assert.equal(await worker.locator('#app-content').isVisible(),false);
   await login(worker,'worker@example.test');await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();
-  await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Ver registros'}).click();await worker.locator('.task-history .daily-record').getByRole('button',{name:'Ver registro'}).click();await worker.locator('.photo-tile').waitFor();
+  await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Ver registros'}).click();await worker.locator('.task-history .daily-record').getByRole('button',{name:'Ver registro'}).click();await worker.locator('.photo-tile').first().waitFor();
   assert.equal(await worker.locator('[name=percent]').inputValue(),'100');assert.equal(await worker.locator('[name=company]').inputValue(),'REAL CONTRACTOR');
  });
  await check('catalog changes affect new selections while existing execution keeps its original scope',async()=>{
-  await owner.locator('#nav-catalog').click();await owner.locator('.service-item').filter({hasText:'Grout'}).getByRole('button',{name:'Editar serviço'}).click();await owner.locator('#workspace-form [name=name]').fill('Grout revised');await owner.locator('#workspace-form [name=active]').selectOption('false');await owner.locator('#workspace-form [type=submit]').click();await owner.locator('#workspace-dialog').waitFor({state:'hidden'});
+  await navigate(owner,'catalog');await owner.locator('.service-item').filter({hasText:'Grout'}).getByRole('button',{name:'Editar serviço'}).click();await owner.locator('#workspace-form [name=name]').fill('Grout revised');await owner.locator('#workspace-form [name=active]').selectOption('false');await owner.locator('#workspace-form [type=submit]').click();await owner.locator('#workspace-dialog').waitFor({state:'hidden'});
   await owner.locator('#catalog-filter').selectOption('inactive');await owner.locator('.service-item').filter({hasText:'Grout revised'}).waitFor();
-  await owner.locator('#nav-jobs').click();await owner.locator('#workspace-new-job').click();assert.equal(await owner.locator('[data-planned-service] option').filter({hasText:'Grout revised'}).count(),0);await owner.locator('#cancel-cloud-job').click();
+  await navigate(owner,'jobs');await owner.locator('#workspace-new-job').click();assert.equal(await owner.locator('[data-planned-service] option').filter({hasText:'Grout revised'}).count(),0);await owner.locator('#cancel-cloud-job').click();
   await owner.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();assert.equal(await owner.locator('.planned-task h3').filter({hasText:'Grout revised'}).count(),0);await owner.locator('.planned-task h3').filter({hasText:'Grout'}).waitFor();
   await owner.locator('#detail-add-task').click();await owner.locator('#workspace-form [name=service]').selectOption({label:'Self-level'});await owner.locator('#workspace-form [name=room]').fill('Second room');await owner.locator('#workspace-form [type=submit]').click();await owner.locator('#workspace-dialog').waitFor({state:'hidden'});await owner.locator('.planned-task').filter({hasText:'Second room'}).waitFor();
  });
+ await owner.setViewportSize({width:1280,height:900});await owner.locator('#workspace-nav').waitFor({state:'visible'});assert.equal(await owner.locator('#workspace-menu-toggle').isVisible(),false);assert.equal(await owner.evaluate(()=>document.querySelector('#workspace-nav').getBoundingClientRect().right<=document.querySelector('#job-workspace').getBoundingClientRect().left),true);await owner.evaluate(()=>window.scrollTo(0,0));await owner.screenshot({path:fileURLToPath(new URL('../.local/sidebar-desktop.png',import.meta.url)),fullPage:false});await owner.setViewportSize({width:390,height:844});
  assert.deepEqual(errors,[]);assert.ok(images.size>=3);assert.ok(!requests.some(path=>path.includes('/object/public/')));
- await owner.locator('#nav-jobs').click();await owner.locator('.job-card').first().waitFor();await owner.screenshot({path:fileURLToPath(new URL('../.local/jobs-workspace-mobile.png',import.meta.url)),fullPage:true});await worker.locator('#save-service').click();await worker.locator('#job-workspace').waitFor({state:'visible'});await worker.screenshot({path:fileURLToPath(new URL('../.local/job-detail-mobile.png',import.meta.url)),fullPage:true});
+ await navigate(owner,'jobs');await owner.locator('.job-card').first().waitFor();await owner.screenshot({path:fileURLToPath(new URL('../.local/jobs-workspace-mobile.png',import.meta.url)),fullPage:true});await worker.locator('#show-services').click();await worker.locator('#job-workspace').waitFor({state:'visible'});await worker.screenshot({path:fileURLToPath(new URL('../.local/job-detail-mobile.png',import.meta.url)),fullPage:true});
  await check('company output policy generates job-wide videos without individual author or worker choices',async()=>{
-  await owner.locator('#nav-jobs').click();await owner.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();
+  await navigate(owner,'jobs');await owner.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();
   const snapshot=await owner.evaluate(()=>FieldReportJobVideo.snapshot(cloudData,cloudData.jobs.find(job=>job.name==='Bathroom repair').id));
   assert.equal(snapshot.tasks.length,3);assert.equal(snapshot.rooms.length,2);assert.deepEqual(snapshot.languages,['pt','es']);assert.equal(snapshot.progress,33);assert.ok(snapshot.reports.some(item=>item.report.photoCount));
   assert.equal(await worker.locator('#generate-job-video').isVisible(),false);
