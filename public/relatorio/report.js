@@ -26,6 +26,25 @@ const workspace = new FieldReportWorkspace({
   start: (job, task) => startTaskReport(job, task), refresh: () => refreshShared(),
   prepareImage: (file, isLogo) => prepareImage(file, isLogo), message: (text, error) => message(text,error), enter: () => enterShared(),
 });
+function setAppAccess(allowed) {
+  $('#app-content').hidden = !allowed;
+  $('#app-content').inert = !allowed;
+  document.body.classList.toggle('access-screen', !allowed);
+}
+function lockSharedAccess(text = 'Entre com seu e-mail e senha.') {
+  cloudEpoch++; clearTimeout(syncTimer); sync.stop();
+  cloudData = null; remoteReports = [];
+  setAppAccess(false); workspace.refresh();
+  $('#job-workspace').replaceChildren(); $('#service-list').replaceChildren();
+  for (const dialog of document.querySelectorAll('dialog[open]')) dialog.close();
+  controller?.abort(); invalidate(false);
+  $('#cloud-login').hidden = false; $('#cloud-account').hidden = true;
+  $('#connection-title').textContent = 'Acesse sua companhia';
+  $('#connection-description').textContent = 'Entre com seu e-mail e senha para acessar suas obras e registros.';
+  $('#connection-status').textContent = text;
+  message('');
+}
+sync.onSessionEnd = () => lockSharedAccess('Sessão encerrada. Entre novamente.');
 const urls = new Set();
 const historicalCycle = () => {
   const task = cloudData?.tasks?.find(item => item.id === cloud?.taskId);
@@ -462,7 +481,7 @@ async function publishRecord(explicit = true) {
     if (explicit) message('Atualização salva no servidor da companhia.');
   } catch (error) {
     if (error.status === 409) conflict = true;
-    if (error.status === 401) { sync.stop(); $('#connection-status').textContent = 'Sessão encerrada. Entre novamente para enviar.'; $('#cloud-login').hidden = false; }
+    if (error.status === 401) lockSharedAccess('Sessão encerrada. Entre novamente para enviar.');
     syncError = error.message || 'Falha de conexão · registro preservado no aparelho';
     $('#sync-status').textContent = syncError;
     if (explicit || conflict) message(error.message || 'Não foi possível enviar. Seu registro local permanece salvo.', true);
@@ -489,17 +508,20 @@ async function refreshSharedOnce(change) {
       }
     }
     refreshCloudControls(); if (libraryVisible) await renderLibrary();
-  } catch (error) { $('#connection-status').textContent = error.status === 401 ? 'Entre novamente para acompanhar a companhia' : 'Sem conexão com a companhia · dados locais preservados'; if (error.status === 401) { sync.stop(); $('#cloud-login').hidden = false; } }
+  } catch (error) { $('#connection-status').textContent = error.status === 401 ? 'Entre novamente para acompanhar a companhia' : 'Sem conexão com a companhia · dados locais preservados'; if ([401,403].includes(error.status)) lockSharedAccess(error.status === 401 ? 'Sessão encerrada. Entre novamente.' : error.message); }
 }
 async function enterShared() {
-  cloudEpoch++;
-  cloudData = await sync.list(); remoteReports = cloudData.reports;
+  const epoch = ++cloudEpoch, incoming = await sync.list();
+  if (epoch !== cloudEpoch) return;
+  cloudData = incoming; remoteReports = cloudData.reports;
   $('#cloud-login').hidden = true; $('#cloud-account').hidden = false; $('#cloud-user').textContent = cloudData.user.name;
   $('#connection-title').textContent = 'Registros da companhia'; $('#connection-description').textContent = 'Usuários autenticados desta companhia acompanham as mesmas obras. Cada profissional publica seus registros; administradores podem revisar e editar.';
   if (cloud) cloud.canEdit = cloudData.user.role === 'admin' || cloud.ownerId === cloudData.user.id;
   if (!values().title.trim() && !countPhotos() && !values().completed && !values().remaining) { form.elements.author.value = cloudData.user.name; await saveNow(); }
   refreshCloudControls(); sync.watch();
+  setAppAccess(true);
   if (sync.kind === 'supabase') await workspace.show('jobs');
+  else await showLibrary();
   const requested = new URLSearchParams(location.search).get('report'); if (requested && remoteReports.some(item => item.id === requested)) await openRecord(requested);
   const requestedJob = new URLSearchParams(location.search).get('job');
   if (requestedJob && cloudData.jobs.some(job => job.id === requestedJob) && !requested) { $('#service-job').value = requestedJob; $('#cloud-job').value = requestedJob; if (sync.kind === 'supabase') await workspace.show('job',requestedJob); else await showLibrary(); }
@@ -507,7 +529,7 @@ async function enterShared() {
 }
 async function startShared() {
   try { cloudAvailable = await sync.detect(); } catch (error) { $('#connection-status').textContent = error.message; return; }
-  if (!cloudAvailable) { $('#connection-description').textContent = cloud ? 'Sem acesso ao servidor: este serviço permanece neste aparelho. As alterações aguardam conexão e login para envio.' : 'Modo local: serviços e fotos ficam neste navegador, separados por registro. Este link ainda não compartilha atualizações entre aparelhos. Salve uma cópia antes de remover dados locais.'; return; }
+  if (!cloudAvailable) { if (!location.hostname.endsWith('.github.io')) setAppAccess(true); $('#connection-description').textContent = cloud ? 'Sem acesso ao servidor: este serviço permanece neste aparelho. As alterações aguardam conexão e login para envio.' : 'Modo local: serviços e fotos ficam neste navegador, separados por registro. Este link ainda não compartilha atualizações entre aparelhos. Salve uma cópia antes de remover dados locais.'; return; }
   $('#connection-title').textContent = 'Acesse sua companhia'; $('#connection-description').textContent = 'Entre para compartilhar fotos e acompanhar as atualizações das obras.';
   if (sync.kind === 'supabase') { $('#signup-access').hidden = false; $('#login-label').textContent = 'Seu e-mail'; $('#cloud-login').elements.login.type = 'email'; }
   $('#cloud-login').hidden = false;
@@ -558,7 +580,7 @@ function wireWorkspace() {
     workspace.refresh();
     for (const element of document.querySelectorAll('[data-personal-branding]')) element.hidden = false;
     $('#new-service').hidden = false;
-    $('#cloud-login').hidden = false; $('#cloud-account').hidden = true; $('#cloud-tools').hidden = true; $('#service-job-label').hidden = true; $('#service-job').value = ''; $('#connection-title').textContent = 'Acesse sua companhia'; $('#connection-status').textContent = 'Sessão encerrada · cópias compartilhadas removidas'; await showLibrary();
+    $('#cloud-login').hidden = false; $('#cloud-account').hidden = true; $('#cloud-tools').hidden = true; $('#service-job-label').hidden = true; $('#service-job').value = ''; $('#connection-title').textContent = 'Acesse sua companhia'; $('#connection-status').textContent = 'Sessão encerrada · cópias compartilhadas removidas'; lockSharedAccess('Sessão encerrada. Entre novamente.');
   });
   $('#reload-remote').onclick = () => void runTask(async () => {
     if (!conflict || !cloud || publishing || busy || importing) return;

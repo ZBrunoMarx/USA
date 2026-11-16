@@ -18,6 +18,9 @@ globalThis.FieldReportSupabaseSync = class extends FieldReportSync {
         finally { clearTimeout(timer); options.signal?.removeEventListener('abort', abort); }
       } },
     });
+    this.client.auth.onAuthStateChange(event => {
+      if (event === 'SIGNED_OUT') queueMicrotask(() => this.onSessionEnd?.());
+    });
     return this.client;
   }
   check(error) {

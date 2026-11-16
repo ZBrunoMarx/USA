@@ -14,9 +14,21 @@
   <script defer src="./workspace.js"></script>
   <script defer src="./report.js"></script>
 </head>
-<body>
+<body class="access-screen">
   <header class="top"><strong>FIELD REPORT</strong><span>OBRAS E EXECUÇÃO · v3.1</span></header>
   <main>
+    <section class="card" id="cloud-panel">
+      <h2 id="connection-title">Acesse sua companhia</h2>
+      <p id="connection-description">Entre com seu e-mail e senha para acessar suas obras e registros.</p>
+      <form id="cloud-login" hidden>
+        <div class="row"><label><span id="login-label">Seu ID</span><input name="login" autocomplete="username" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" required></label></div>
+        <button class="primary" type="submit">Entrar na companhia</button>
+      </form>
+      <div id="cloud-account" hidden><span id="cloud-user"></span><a id="company-app-link" class="button secondary" href="/">Obras e equipe</a><button id="create-cloud-job" type="button" class="secondary" hidden>Nova obra</button><button id="cloud-logout" class="secondary" type="button">Sair e limpar dados compartilhados deste aparelho</button></div>
+      <button id="signup-access" type="button" class="secondary" hidden>Criar meu acesso</button><p id="connection-status" class="hint" role="status"></p>
+    </section>
+
+    <div id="app-content" hidden inert>
     <section class="intro">
       <span class="eyebrow">DA OBRA AO REGISTRO DO DIA</span>
       <h1>Obras organizadas.<br>Equipe em movimento.</h1>
@@ -24,17 +36,6 @@
       <div class="status-row"><span id="save-status" role="status" aria-live="polite">Abrindo seu rascunho…</span><span id="offline-status">Verificando acesso sem conexão…</span></div>
       <div id="update-notice" class="notice" hidden>Há uma atualização disponível. <button id="apply-update" type="button">Atualizar a página</button></div>
       <p id="storage-warning" class="notice error" hidden></p>
-    </section>
-
-    <section class="card" id="cloud-panel">
-      <h2 id="connection-title">Registros neste aparelho</h2>
-      <p id="connection-description">Cada serviço tem seu próprio registro. O acesso compartilhado precisa da versão com servidor e login; este link pode funcionar somente neste navegador.</p>
-      <form id="cloud-login" hidden>
-        <div class="row"><label><span id="login-label">Seu ID</span><input name="login" autocomplete="username" required></label><label>Senha<input name="password" type="password" autocomplete="current-password" required></label></div>
-        <button class="primary" type="submit">Entrar na companhia</button>
-      </form>
-      <div id="cloud-account" hidden><span id="cloud-user"></span><a id="company-app-link" class="button secondary" href="/">Obras e equipe</a><button id="create-cloud-job" type="button" class="secondary" hidden>Nova obra</button><button id="cloud-logout" class="secondary" type="button">Sair e limpar dados compartilhados deste aparelho</button></div>
-      <button id="signup-access" type="button" class="secondary" hidden>Criar meu acesso</button><p id="connection-status" class="hint" role="status"></p>
     </section>
 
     <nav id="workspace-nav" class="workspace-nav" aria-label="Navegação da companhia" hidden><button id="nav-jobs" type="button" class="primary">Obras</button><button id="nav-reports" type="button" class="secondary">Registros</button><button id="nav-catalog" type="button" class="secondary" hidden>Serviços</button><button id="nav-team" type="button" class="secondary" hidden>Equipe</button><button id="nav-settings" type="button" class="secondary" hidden>Companhia</button></nav>
@@ -124,6 +125,7 @@
       <div class="actions"><button id="save-service" class="primary" type="button" disabled>Salvar e voltar à obra</button><button id="new-report" class="secondary" type="button" disabled>Novo relatório</button><button id="archive-report" class="secondary" type="button" disabled>Arquivar serviço</button><button id="remove-local" class="secondary danger" type="button" disabled>Remover deste aparelho</button></div>
       <p class="hint">Use a mesma URL e o mesmo Safari de manhã e no fim do dia. Esta página poderá ser atualizada sem instalar outro app. O MP4 exportado precisa ser salvo ou compartilhado por você.</p>
     </section>
+    </div>
     </div>
     <p id="message" class="notice" role="status" aria-live="polite" hidden></p>
     <footer>Field Report · registro do trabalho, sem aprovação técnica automática.</footer>

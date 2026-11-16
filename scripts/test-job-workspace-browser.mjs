@@ -8,6 +8,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { once } from 'node:events';
 import { randomUUID } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 const db = new PGlite(), dir = mkdtempSync(join(tmpdir(),'job-workspace-'));
 const company = randomUUID(), adminId = randomUUID(), workerId = randomUUID(), oldJob = randomUUID(), oldReport = randomUUID();
@@ -90,6 +91,26 @@ try {
  browser=await chromium.launch({executablePath:process.env.SKYTILE_CHROMIUM || '/usr/bin/chromium',args:['--no-sandbox']});
  const ownerContext=await browser.newContext({...devices['iPhone 13'],serviceWorkers:'block'}),workerContext=await browser.newContext({...devices['iPhone 13'],serviceWorkers:'block'});
  const owner=await ownerContext.newPage(),worker=await workerContext.newPage();await setup(owner);await setup(worker);
+ await check('login gate hides the app before validation, even with a saved local draft',async()=>{
+  const html = await (await owner.request.get(base+'/relatorio/')).text();
+  assert.match(html,/<div id="app-content" hidden inert>/);
+  await owner.goto(base+'/relatorio/');await owner.locator('#cloud-login').waitFor({state:'visible'});
+  await owner.evaluate(async()=>{
+   const store=await FieldReportLibrary.open();
+   await store.save({id:crypto.randomUUID(),fields:{title:'PRIVATE LOCAL DRAFT',date:'2026-11-16',author:'Owner',scope:'Private scope',language:'en',percent:'10',company:'',completed:'Private notes',remaining:''},photos:{before:[],after:[],pending:[]},logo:null,status:'active',savedAt:Date.now()},0);
+   store.db.close();
+  });
+  await owner.reload();await owner.locator('#cloud-login').waitFor({state:'visible'});
+  assert.equal(await owner.locator('#app-content').isVisible(),false);
+  assert.equal(await owner.locator('#show-services').isVisible(),false);
+  assert.equal(await owner.locator('#workspace-nav').isVisible(),false);
+  assert.equal(await owner.getByText('PRIVATE LOCAL DRAFT',{exact:true}).isVisible(),false);
+  await owner.screenshot({path:fileURLToPath(new URL('../.local/login-gate-mobile.png',import.meta.url)),fullPage:true});
+  await owner.locator('#cloud-login [name=login]').fill('owner@example.test');
+  await owner.locator('#cloud-login [name=password]').fill('Wrong-password-test');
+  await owner.locator('#cloud-login button').click();await owner.locator('#message').filter({hasText:'Invalid'}).waitFor();
+  assert.equal(await owner.locator('#app-content').isVisible(),false);
+ });
  await check('before migration: jobs open with update guidance, earlier reports remain accessible',async()=>{
   await owner.goto(base+'/relatorio/');await login(owner,'owner@example.test');await owner.getByRole('link',{name:'Atualizar banco'}).waitFor();
   await owner.locator('#nav-reports').click();await owner.locator('.service-item').filter({hasText:'Existing report'}).waitFor();
@@ -149,6 +170,8 @@ try {
   assert.equal(await worker.evaluate(()=>JSON.stringify(localStorage).includes('Only-a-browser-test-2026')),false);
   const logout=worker.waitForEvent('dialog').then(dialog=>dialog.accept());await worker.locator('#cloud-logout').click();await logout;await worker.locator('#cloud-login').waitFor({state:'visible'});
   assert.equal(await worker.evaluate(()=>Object.keys(localStorage).some(key=>key.startsWith('field-report-auth-'))),false);
+  assert.equal(await worker.locator('#app-content').isVisible(),false);assert.equal(await worker.locator('#show-services').isVisible(),false);assert.equal(await worker.locator('#service-library').isVisible(),false);
+  await worker.reload();await worker.locator('#cloud-login').waitFor({state:'visible'});assert.equal(await worker.locator('#app-content').isVisible(),false);
   await login(worker,'worker@example.test');await worker.locator('.job-card').filter({hasText:'Bathroom repair'}).getByRole('button',{name:'Abrir obra'}).click();
   await worker.locator('.planned-task').filter({hasText:'Self-level'}).getByRole('button',{name:'Ver registros'}).click();await worker.locator('.task-history .daily-record').getByRole('button',{name:'Fotos e vídeo'}).click();await worker.locator('.photo-tile').waitFor();
   assert.equal(await worker.locator('[name=percent]').inputValue(),'100');assert.equal(await worker.locator('[name=company]').inputValue(),'REAL CONTRACTOR');
@@ -161,6 +184,13 @@ try {
   await owner.locator('#detail-add-task').click();await owner.locator('#workspace-form [name=service]').selectOption({label:'Self-level'});await owner.locator('#workspace-form [name=room]').fill('Second room');await owner.locator('#workspace-form [type=submit]').click();await owner.locator('#workspace-dialog').waitFor({state:'hidden'});await owner.locator('.planned-task').filter({hasText:'Second room'}).waitFor();
  });
  assert.deepEqual(errors,[]);assert.ok(images.size>=3);assert.ok(!requests.some(path=>path.includes('/object/public/')));
- await owner.locator('#nav-jobs').click();await owner.locator('.job-card').first().waitFor();await owner.screenshot({path:new URL('../.local/jobs-workspace-mobile.png',import.meta.url).pathname,fullPage:true});await worker.locator('#save-service').click();await worker.locator('#job-workspace').waitFor({state:'visible'});await worker.screenshot({path:new URL('../.local/job-detail-mobile.png',import.meta.url).pathname,fullPage:true});
+ await owner.locator('#nav-jobs').click();await owner.locator('.job-card').first().waitFor();await owner.screenshot({path:fileURLToPath(new URL('../.local/jobs-workspace-mobile.png',import.meta.url)),fullPage:true});await worker.locator('#save-service').click();await worker.locator('#job-workspace').waitFor({state:'visible'});await worker.screenshot({path:fileURLToPath(new URL('../.local/job-detail-mobile.png',import.meta.url)),fullPage:true});
+ await check('sign-out in another tab immediately locks an open report',async()=>{
+  const secondTab=await workerContext.newPage();await setup(secondTab);await secondTab.goto(base+'/relatorio/');await secondTab.locator('.job-card').first().waitFor();
+  await secondTab.evaluate(async()=>{const client=FieldReportSupabase.createClient('https://field-report-test.supabase.co','sb_publishable_test_only',{auth:{storageKey:'field-report-auth-field-report-test.supabase.co'}});await client.auth.signOut({scope:'local'});});
+  await worker.locator('#cloud-login').waitFor({state:'visible'});
+  assert.equal(await worker.locator('#app-content').isVisible(),false);assert.equal(await worker.locator('#job-workspace').isVisible(),false);
+  await secondTab.close();
+ });
  console.log('PASS jobs-first browser cycle: real Postgres + real SDK; only external provider transports simulated.');
 }finally{await browser?.close();await dbChain.catch(()=>{});await db.close();if(child&&child.exitCode===null&&child.signalCode===null){const done=once(child,'exit');child.kill('SIGTERM');await done;}rmSync(dir,{recursive:true,force:true});}
